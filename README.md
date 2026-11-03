@@ -1,18 +1,18 @@
 # Ready
 
-Ready combines video meetings, personal voice agents, meeting notes and tasks, calendar preparation, and connected mail in a shared workspace. Authenticated invitees and anonymous guests have different access boundaries and post-meeting views. Repository configuration does not establish which optional features or providers are enabled in production.
+An open-source video calling platform that keeps up with your conversations.
+
+Ready is live meeting intelligence. It keeps track so you don’t have to. Mention someone, and their background comes up. Decisions and next steps take shape as you talk.
+
+In a meeting, Ready follows decisions, open questions, and tasks as people talk, and can bring up relevant context about someone when they are mentioned. On your own, you can talk with your AI assistant. When the call ends, the conversation is already notes, decisions, and tasks.
+
+Start an instant meeting at [ready.new](https://ready.new), or use Ready at [ready.app](https://ready.app). To schedule ahead, add a Ready meeting from the Ready add-on for Google Calendar.
 
 ## License
 
 Ready is source-available under the [Business Source License 1.1](LICENSE). Devin Ersoy and Sam Zetterberg are the licensors. Ready Sparkles, Inc. operates the hosted service.
 
 The additional use grant is None. You may copy, modify, and use the source for non-production purposes. On 2030-11-03, this release is licensed under GPL Version 2.0 or any later version.
-
-To publish a public snapshot without this repository's history, run this from the repository root. It archives the latest commit, not uncommitted edits. The destination must be a new directory outside the repository. The command writes one commit and does not push.
-
-```sh
-node scripts/export-public-snapshot.mjs /path/outside/this/repo
-```
 
 ## Repository layout
 
