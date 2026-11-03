@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<title>Ready for Outlook</title>
+		<link rel="stylesheet" href="./addon.css" />
+		<script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+		<script type="module" src="./taskpane.js"></script>
+	</head>
+	<body>
+		<main>
+			<header><img src="/icon-32.png" alt="" />Ready</header>
+			<h1>Add a Ready meeting</h1>
+			<p id="status" role="status" aria-live="polite">
+				Please update Outlook or open this event in Outlook on the web.
+			</p>
+			<button id="add" disabled>Add Ready meeting</button
+			><a id="join" class="secondary" target="_blank" rel="noopener noreferrer" hidden>Open meeting</a>
+			<footer>
+				<a href="https://ready.app" target="_blank" rel="noopener noreferrer">Open Ready</a
+				><a href="mailto:support@ready.app">Help</a>
+			</footer>
+		</main>
+	</body>
+</html>

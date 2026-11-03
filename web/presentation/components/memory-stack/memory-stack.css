@@ -1,0 +1,1066 @@
+/* Highlight All Memory geometry and motion, scoped to the Ready memory browser. */
+.relationship-memory-page .memory-layout-toggle {
+	display: inline-flex;
+	height: var(--workspace-toolbar-control-height, 36px);
+	min-height: var(--workspace-toolbar-control-height, 36px);
+	align-items: center;
+	gap: 2px;
+	padding: 3px;
+	overflow: hidden;
+	border: 1px solid var(--app-pill-border);
+	border-radius: 999px;
+	background: var(--app-surface);
+}
+
+.relationship-memory-page .memory-layout-toggle-button {
+	display: grid;
+	width: 28px;
+	min-width: 28px;
+	height: 28px;
+	min-height: 28px;
+	padding: 0;
+	border: 0;
+	border-radius: 14px;
+	background: transparent;
+	color: var(--text-secondary);
+	cursor: pointer;
+	place-items: center;
+	transition:
+		background-color 140ms ease,
+		color 140ms ease;
+}
+
+.relationship-memory-page .memory-layout-toggle-button:hover,
+.relationship-memory-page .memory-layout-toggle-button:focus-visible {
+	background: var(--app-surface-hover);
+	color: var(--text-strong);
+	outline: none;
+}
+
+.relationship-memory-page .memory-layout-toggle-button:focus-visible {
+	box-shadow: inset 0 0 0 1px rgb(114 151 207 / 52%);
+}
+
+.relationship-memory-page .memory-layout-toggle-button[aria-pressed="true"] {
+	background: var(--app-selection);
+	color: var(--text-strong);
+}
+
+.relationship-memory-page .memory-card-stage {
+	touch-action: pan-y pinch-zoom;
+	position: absolute;
+	z-index: 5;
+	top: 50%;
+	left: calc((100% - 128px) / 2);
+	width: min(600px, calc(100% - 176px));
+	height: min(340px, calc(100% - 120px));
+	perspective: 1200px;
+	perspective-origin: 50% 10%;
+	transform: translate(-50%, -50%);
+	transform-style: preserve-3d;
+	transition:
+		width 260ms cubic-bezier(0.22, 1, 0.36, 1),
+		height 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-group(memory-layout-card-0),
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-group(memory-layout-card-1),
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-group(memory-layout-card-2),
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-group(memory-layout-card-3),
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-group(memory-layout-card-4) {
+	animation-duration: 300ms;
+	animation-fill-mode: both;
+	animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-group(memory-layout-card-0) {
+	z-index: 105;
+}
+
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-group(memory-layout-card-1) {
+	z-index: 104;
+	animation-delay: 8ms;
+}
+
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-group(memory-layout-card-2) {
+	z-index: 103;
+	animation-delay: 16ms;
+}
+
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-group(memory-layout-card-3) {
+	z-index: 102;
+	animation-delay: 24ms;
+}
+
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-group(memory-layout-card-4) {
+	z-index: 101;
+	animation-delay: 32ms;
+}
+
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-image-pair(memory-layout-card-0),
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-image-pair(memory-layout-card-1),
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-image-pair(memory-layout-card-2),
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-image-pair(memory-layout-card-3),
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-image-pair(memory-layout-card-4) {
+	isolation: auto;
+}
+
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-old(memory-layout-card-0),
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-old(memory-layout-card-1),
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-old(memory-layout-card-2),
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-old(memory-layout-card-3),
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-old(memory-layout-card-4) {
+	animation: memory-layout-card-old 115ms ease-out both;
+	mix-blend-mode: normal;
+}
+
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-new(memory-layout-card-0),
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-new(memory-layout-card-1),
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-new(memory-layout-card-2),
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-new(memory-layout-card-3),
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-new(memory-layout-card-4) {
+	animation: memory-layout-card-new 175ms cubic-bezier(0.22, 1, 0.36, 1) 65ms both;
+	mix-blend-mode: normal;
+}
+
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-group(root) {
+	animation-duration: 220ms;
+	animation-timing-function: ease-out;
+}
+
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-old(root),
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-new(root) {
+	mix-blend-mode: normal;
+}
+
+html.memory-layout-to-stack::view-transition-old(root) {
+	animation: memory-layout-list-fold-away 105ms ease-out both;
+}
+
+html.memory-layout-to-stack::view-transition-new(root) {
+	animation: none;
+	opacity: 1;
+}
+
+@keyframes memory-layout-card-old {
+	to {
+		opacity: 0;
+	}
+}
+
+@keyframes memory-layout-card-new {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes memory-layout-list-fold-away {
+	to {
+		opacity: 0;
+	}
+}
+
+.relationship-memory-page .memory-snapshot-card {
+	--memory-card-leading-inset: 32px;
+	--memory-card-corner-inset: 26px;
+	--memory-card-radius: 18px;
+
+	position: absolute;
+	inset: 0;
+	overflow: hidden;
+	padding: var(--memory-card-leading-inset) var(--memory-card-corner-inset) var(--memory-card-corner-inset)
+		var(--memory-card-leading-inset);
+	border: 0;
+	border-radius: var(--memory-card-radius);
+	background: var(--memory-card-surface, var(--app-selection));
+	box-shadow:
+		inset 0 1px rgb(255 255 255 / 1.8%),
+		0 14px 34px rgb(0 0 0 / 24%);
+	transform-origin: 50% 0;
+	transition:
+		opacity 180ms ease,
+		transform var(--memory-card-shift-duration, 460ms)
+			var(--memory-card-shift-easing, cubic-bezier(0.22, 1, 0.36, 1)),
+		scale var(--memory-card-shift-duration, 460ms) var(--memory-card-shift-easing, cubic-bezier(0.22, 1, 0.36, 1)),
+		background-color var(--memory-card-shift-duration, 460ms)
+			var(--memory-card-shift-easing, cubic-bezier(0.22, 1, 0.36, 1));
+	will-change: transform;
+}
+
+.relationship-memory-page .memory-active-panel.is-ruler-traveling .memory-snapshot-card:not(.is-exiting) {
+	transition: box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.relationship-memory-page .memory-snapshot-card.is-active {
+	background: #171717;
+	box-shadow:
+		inset 0 1px rgb(255 255 255 / 2%),
+		0 22px 46px rgb(0 0 0 / 34%);
+}
+
+.relationship-memory-page .memory-stack-card-target {
+	position: absolute;
+	z-index: 1;
+	top: 0;
+	right: 0;
+	left: 0;
+	width: 100%;
+	height: 24px;
+	padding: 0;
+	border: 0;
+	border-radius: inherit;
+	background: transparent;
+	cursor: pointer;
+	transition: background-color 140ms ease;
+}
+
+.relationship-memory-page .memory-stack-card-target:hover {
+	background: rgb(114 151 207 / 2.5%);
+}
+
+.relationship-memory-page .memory-stack-card-target:focus-visible {
+	background: rgb(114 151 207 / 3.5%);
+	outline: 1px solid rgb(114 151 207 / 56%);
+	outline-offset: -3px;
+}
+
+.relationship-memory-page .memory-stack-card-target:active {
+	background: rgb(114 151 207 / 5%);
+}
+
+.relationship-memory-page .memory-ruler {
+	--memory-ruler-label: var(--text-subtle);
+	--memory-ruler-accent: #7297cf;
+	--memory-ruler-day-tick: rgb(114 151 207 / 56%);
+	--memory-ruler-moment-tick: rgb(114 151 207 / 40%);
+	--memory-ruler-glow: rgb(114 151 207 / 24%);
+	position: absolute;
+	z-index: 30;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	width: 128px;
+	background: linear-gradient(90deg, transparent 0%, rgb(8 10 9 / 48%) 56%, rgb(8 10 9 / 84%) 100%);
+	backdrop-filter: blur(16px);
+	-webkit-backdrop-filter: blur(16px);
+	transition: opacity 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.relationship-memory-page .memory-ruler::before,
+.relationship-memory-page .memory-ruler::after {
+	position: absolute;
+	z-index: 4;
+	top: 0;
+	right: 0;
+	width: 128px;
+	height: 128px;
+	background: linear-gradient(
+		180deg,
+		rgb(8 10 9 / 100%) 0%,
+		rgb(8 10 9 / 100%) 52%,
+		rgb(8 10 9 / 94%) 66%,
+		rgb(8 10 9 / 0%) 100%
+	);
+	content: "";
+	pointer-events: none;
+}
+
+.relationship-memory-page .memory-ruler::before {
+	top: auto;
+	bottom: 0;
+	transform: rotate(180deg);
+}
+
+.relationship-memory-page .memory-ruler-track {
+	position: absolute;
+	top: 50px;
+	right: 0;
+	bottom: 76px;
+	width: 128px;
+	cursor: pointer;
+	isolation: isolate;
+}
+
+.relationship-memory-page .memory-ruler-rows {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	width: 310px;
+	overflow: hidden;
+	pointer-events: none;
+}
+
+.relationship-memory-page .memory-ruler-day,
+.relationship-memory-page .memory-ruler-moment {
+	position: absolute;
+	top: 50%;
+	right: 0;
+	display: flex;
+	width: 310px;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 10.5px;
+	padding: 0;
+	background: transparent;
+	color: var(--memory-ruler-label);
+	cursor: pointer;
+	font-variant-numeric: tabular-nums;
+	line-height: 1;
+	pointer-events: none;
+	transform: translate3d(0, calc(-50% + var(--ruler-tick-offset)), 0);
+	will-change: transform;
+}
+
+.relationship-memory-page .memory-ruler-day {
+	z-index: 3;
+	height: 24px;
+	font-size: 10px;
+	font-weight: 650;
+}
+
+.relationship-memory-page .memory-ruler-moment {
+	z-index: 2;
+	height: 7px;
+	font-size: 9px;
+}
+
+.relationship-memory-page .memory-ruler-day > span,
+.relationship-memory-page .memory-ruler-moment > span {
+	opacity: 0;
+	transform: translateX(7px) scale(0.96);
+	transform-origin: right center;
+	transition:
+		transform 120ms ease-out,
+		opacity 100ms ease-out;
+	white-space: nowrap;
+}
+
+.relationship-memory-page .memory-ruler-day > span {
+	opacity: 0.82;
+	transform: translateX(0) scale(1);
+}
+
+.relationship-memory-page .memory-ruler-day i,
+.relationship-memory-page .memory-ruler-moment i {
+	display: block;
+	flex: 0 0 auto;
+	width: var(--ruler-tick-width);
+	border-radius: 0;
+	opacity: var(--ruler-tick-opacity);
+	transition:
+		background-color 110ms ease-out,
+		box-shadow 130ms ease-out;
+	will-change: width, height, opacity;
+}
+
+.relationship-memory-page .memory-ruler-day i {
+	height: 4.5px;
+	background: var(--memory-ruler-day-tick);
+}
+
+.relationship-memory-page .memory-ruler-moment i {
+	height: var(--ruler-tick-height, 2.5px);
+	background: var(--memory-ruler-moment-tick);
+}
+
+.relationship-memory-page .memory-ruler-day:hover,
+.relationship-memory-page .memory-ruler-day:focus-visible,
+.relationship-memory-page .memory-ruler-moment:hover,
+.relationship-memory-page .memory-ruler-moment:focus-visible {
+	color: var(--text-default);
+	outline: none;
+}
+
+.relationship-memory-page .memory-ruler-day.is-active {
+	color: var(--memory-ruler-accent);
+	font-weight: 700;
+}
+
+.relationship-memory-page .memory-ruler-moment.is-hovered {
+	color: var(--text-default);
+	font-weight: 650;
+}
+
+.relationship-memory-page .memory-ruler-day.is-active > span,
+.relationship-memory-page .memory-ruler-day:focus-visible > span,
+.relationship-memory-page .memory-ruler-moment.is-hovered > span,
+.relationship-memory-page .memory-ruler-moment:focus-visible > span {
+	opacity: 1;
+	transform: translateX(0) scale(1);
+}
+
+.relationship-memory-page .memory-ruler-day.is-active i,
+.relationship-memory-page .memory-ruler-moment.is-active i {
+	background: var(--memory-ruler-accent);
+}
+
+.relationship-memory-page .memory-ruler-moment.is-hovered,
+.relationship-memory-page .memory-ruler-moment:hover,
+.relationship-memory-page .memory-ruler-moment:focus-visible {
+	color: var(--memory-ruler-accent);
+	font-weight: 700;
+}
+
+.relationship-memory-page .memory-ruler-moment.is-hovered i,
+.relationship-memory-page .memory-ruler-moment.is-active.is-hovered i,
+.relationship-memory-page .memory-ruler-moment:hover i,
+.relationship-memory-page .memory-ruler-moment:focus-visible i {
+	background: var(--memory-ruler-accent);
+	box-shadow: 0 0 6px var(--memory-ruler-glow);
+}
+
+.relationship-memory-page .memory-ruler-moment:focus-visible i {
+	width: 84px;
+	height: 24px;
+	opacity: 1;
+}
+
+.relationship-memory-page .memory-ruler-today-row {
+	color: var(--memory-ruler-accent);
+	font-weight: 700;
+	cursor: default;
+}
+
+.relationship-memory-page .memory-ruler-today-row i {
+	background: var(--memory-ruler-accent);
+}
+
+html:not([data-theme="dark"]) .relationship-memory-page .memory-ruler {
+	--memory-ruler-label: var(--text-default);
+	--memory-ruler-accent: var(--text-default);
+	--memory-ruler-day-tick: color-mix(in srgb, var(--text-default) 56%, transparent);
+	--memory-ruler-moment-tick: color-mix(in srgb, var(--text-default) 40%, transparent);
+	--memory-ruler-glow: color-mix(in srgb, var(--text-default) 24%, transparent);
+}
+
+html:not([data-theme="dark"]) .relationship-memory-page .memory-ruler-moment.is-active i {
+	background: var(--ready-blue);
+}
+
+.relationship-memory-page .memory-ruler-controls {
+	display: flex;
+	gap: 7px;
+}
+
+.relationship-memory-page .memory-card-navigation {
+	position: absolute;
+	z-index: 50;
+	top: 50%;
+	left: calc((100% - 128px) / 2 + min(300px, calc((100% - 176px) / 2)) + 16px);
+	flex-direction: column;
+	transform: translateY(-50%);
+}
+
+.relationship-memory-page .workspace-upcoming-calendar-nav-button.memory-ruler-control-button {
+	width: var(--workspace-toolbar-control-height, 36px);
+	min-width: var(--workspace-toolbar-control-height, 36px);
+	height: var(--workspace-toolbar-control-height, 36px);
+	min-height: var(--workspace-toolbar-control-height, 36px);
+}
+
+.relationship-memory-page .memory-card-navigation .relationship-chevron-icon svg {
+	width: 9px;
+	height: 13px;
+	color: var(--text-subtle);
+}
+
+.relationship-memory-page .memory-ruler-control-button.is-older .workspace-upcoming-calendar-nav-icon {
+	transform: rotate(-90deg);
+}
+
+.relationship-memory-page .memory-ruler-control-button.is-newer .workspace-upcoming-calendar-nav-icon {
+	transform: rotate(90deg);
+}
+
+/* Ready supplies the live content and theme; Highlight supplies the spatial model. */
+.relationship-memory-page .memory-layout-toggle {
+	flex: none;
+	box-sizing: border-box;
+}
+.relationship-memory-page .memory-layout-icon {
+	width: 19px;
+	height: 19px;
+	display: block;
+}
+.relationship-memory-page .memory-layout-toggle-button {
+	color: var(--text-subtle);
+}
+.relationship-memory-page .memory-layout-toggle-button[aria-pressed="true"] {
+	background: var(--app-surface-hover);
+}
+.relationship-memory-page .memory-card-browser.is-stack {
+	position: fixed;
+	top: 74px;
+	bottom: 24px;
+	left: calc(var(--workspace-content-offset) + var(--workspace-rail-gutter));
+	right: 0;
+	overflow: hidden;
+	overscroll-behavior: none;
+}
+.relationship-memory-page .memory-card-browser .memory-ruler {
+	position: fixed;
+	top: 74px;
+	bottom: 0;
+	background: linear-gradient(
+		90deg,
+		transparent,
+		color-mix(in srgb, var(--app-canvas) 48%, transparent) 56%,
+		color-mix(in srgb, var(--app-canvas) 84%, transparent)
+	);
+}
+.relationship-memory-page .memory-ruler::before,
+.relationship-memory-page .memory-ruler::after {
+	background: linear-gradient(
+		180deg,
+		var(--app-canvas) 0%,
+		var(--app-canvas) 52%,
+		color-mix(in srgb, var(--app-canvas) 94%, transparent) 66%,
+		transparent 100%
+	);
+}
+.relationship-memory-page .memory-ruler-day,
+.relationship-memory-page .memory-ruler-moment {
+	border: 0;
+	border-radius: 0;
+	box-shadow: none;
+}
+.relationship-memory-page .memory-today-button {
+	position: absolute;
+	right: 24px;
+	bottom: 24px;
+	z-index: 5;
+	border: 1px solid var(--app-pill-border);
+	border-radius: 999px;
+	background: var(--app-surface);
+	color: var(--text-secondary);
+	padding: 7px 12px;
+	font-size: 13px;
+}
+.relationship-memory-page .memory-card-browser .memory-snapshot-card {
+	padding: 0;
+	--memory-card-surface: color-mix(in srgb, var(--memory-expanded) calc(100% - var(--stack-depth, 0) * 25%), white);
+	background: var(--memory-card-surface);
+	box-shadow:
+		inset 0 1px color-mix(in srgb, var(--app-control-border) 45%, transparent),
+		0 14px 34px rgb(0 0 0 / 8%);
+}
+html:not([data-theme="dark"]) .relationship-memory-page .memory-card-browser .memory-snapshot-card.is-active {
+	border: 1px solid color-mix(in srgb, var(--app-control-border) 30%, transparent);
+	box-shadow: 0 14px 34px rgb(0 0 0 / 8%);
+}
+html[data-theme="dark"] .relationship-memory-page .memory-card-browser .memory-snapshot-card {
+	--memory-card-surface: var(--memory-dark-surface, #171717);
+	box-shadow:
+		inset 0 1px rgb(255 255 255 / 1.8%),
+		0 14px 34px rgb(0 0 0 / 24%);
+}
+.relationship-memory-page .memory-card-browser.is-ruler-traveling .memory-snapshot-card {
+	transition: box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.relationship-memory-page .memory-card-browser .memory-card-reveal-content {
+	height: 100%;
+}
+.relationship-memory-page .memory-card-browser.is-stack .relationship-memory-detail {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	min-height: 0;
+	width: 100%;
+	margin: 0;
+	padding: 32px 26px 26px 32px;
+	border: 0;
+	border-radius: 18px;
+	background: transparent;
+	box-shadow: none;
+	box-sizing: border-box;
+	animation: none;
+}
+.relationship-memory-page .memory-card-browser.is-stack .relationship-memory-detail > header {
+	margin-bottom: 0;
+}
+.relationship-memory-page .memory-card-browser.is-stack .relationship-detail-description {
+	margin-top: 12px;
+	overflow-y: auto;
+	min-height: 0;
+}
+.relationship-memory-page .memory-card-browser.is-stack .relationship-detail-footer {
+	margin-top: auto;
+	padding-top: 24px;
+}
+.relationship-memory-page .memory-card-browser .memory-card-exit {
+	opacity: 1;
+	pointer-events: none;
+	transition: opacity 200ms ease-out;
+}
+.relationship-memory-page .memory-card-browser .memory-card-exit.is-fading {
+	opacity: 0;
+}
+.relationship-memory-page .memory-card-browser.is-focused .memory-card-stage {
+	height: calc(100% - 48px);
+	top: 24px;
+	transform: translateX(-50%);
+}
+.relationship-memory-page .memory-card-browser.is-focused .memory-ruler,
+.relationship-memory-page .memory-card-browser.is-focused .memory-card-navigation {
+	opacity: 0;
+	pointer-events: none;
+}
+.relationship-memory-page .memory-card-browser.is-stack .relationship-memory-detail.is-transcript-open {
+	height: 100% !important;
+}
+@media (max-width: 1000px) {
+	.relationship-memory-page .memory-card-browser.is-stack {
+		left: 0;
+	}
+}
+@media (max-width: 800px) {
+	.relationship-memory-page .memory-card-browser .memory-ruler {
+		display: none;
+	}
+	.relationship-memory-page .memory-card-stage {
+		left: 50%;
+		width: calc(100% - 32px);
+		height: min(440px, calc(100% - 160px));
+	}
+	.relationship-memory-page .memory-card-browser.is-stack .relationship-memory-detail {
+		padding: 24px 20px;
+	}
+	.relationship-memory-page .memory-card-navigation {
+		left: auto;
+		right: 16px;
+		top: auto;
+		bottom: 0;
+		flex-direction: row;
+		transform: none;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.relationship-memory-page .memory-card-browser *,
+	.relationship-memory-page .memory-layout-toggle-button {
+		transition: none !important;
+		animation: none !important;
+	}
+}
+
+.relationship-memory-page .memory-card-load-error {
+	position: absolute;
+	bottom: 0;
+	left: 24px;
+	right: 152px;
+	text-align: center;
+	font-size: 13px;
+	color: var(--text-secondary);
+}
+
+/* Free accounts can change and navigate the preview layout beneath the upgrade card. */
+.relationship-memory-upgrade .memory-card-browser.is-list {
+	position: absolute;
+	inset: 0;
+	z-index: 0;
+}
+.relationship-memory-upgrade .memory-card-browser.is-stack {
+	z-index: 0;
+}
+/* Escape the preview's stacking context so controls stay above the banner fade. */
+.relationship-memory-upgrade .memory-upgrade-navigation-layer {
+	position: fixed;
+	inset: 74px 0 24px calc(var(--workspace-content-offset) + var(--workspace-rail-gutter));
+	z-index: 2;
+	pointer-events: none;
+	view-transition-name: memory-upgrade-navigation;
+}
+.memory-upgrade-navigation-layer .memory-card-navigation {
+	pointer-events: auto;
+}
+html::view-transition-group(memory-upgrade-navigation) {
+	z-index: 201;
+}
+
+.relationship-memory-upgrade.is-card-preview .memory-card-stage {
+	left: 50%;
+	top: calc(50% - 100px);
+}
+.relationship-memory-upgrade.is-card-preview .memory-card-navigation {
+	left: calc(50% + min(300px, calc((100% - 176px) / 2)) + 16px);
+	top: calc(50% - 100px - min(170px, calc((100% - 120px) / 2)) + 64px);
+	right: auto;
+	bottom: auto;
+	flex-direction: column;
+	transform: translateY(-50%);
+}
+@media (max-width: 1000px) {
+	.relationship-memory-upgrade .memory-upgrade-navigation-layer {
+		left: 0;
+	}
+}
+@media (max-width: 800px) {
+	.relationship-memory-upgrade.is-card-preview .memory-card-navigation {
+		left: calc(100% - 46px);
+	}
+}
+
+/* Capture the banner and its stationary gradient together above moving cards. */
+html:is(.memory-layout-to-list, .memory-layout-to-stack) .relationship-memory-upgrade-stage {
+	view-transition-name: memory-upgrade-banner;
+}
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-group(memory-upgrade-banner) {
+	z-index: 200;
+	animation: none;
+}
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-old(memory-upgrade-banner) {
+	animation: none;
+	opacity: 0;
+}
+html:is(.memory-layout-to-list, .memory-layout-to-stack)::view-transition-new(memory-upgrade-banner) {
+	animation: none;
+	opacity: 1;
+	mix-blend-mode: normal;
+}
+
+/* The free preview scrolls independently beneath the banner's stationary fade.
+   Trailing space lets even the last preview row reach the top of the fade. */
+.relationship-memory-upgrade .memory-card-browser .relationship-memory-upgrade-preview::after {
+	content: "";
+	display: block;
+	height: 100%;
+	pointer-events: none;
+}
+
+/* Highlight’s dot-key creation animation, triggered by newly processed memories. */
+.relationship-memory-page .memory-snapshot-card.is-entering {
+	animation: memory-card-materialize 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.relationship-memory-page .memory-card-reveal-content {
+	width: 100%;
+	height: 100%;
+}
+
+.relationship-memory-page .memory-snapshot-card.is-entering .memory-card-reveal-content {
+	opacity: 0;
+	filter: blur(3px);
+	transition:
+		opacity 400ms cubic-bezier(0.22, 1, 0.36, 1),
+		filter 400ms cubic-bezier(0.22, 1, 0.36, 1);
+	will-change: opacity, filter;
+}
+
+.relationship-memory-page .memory-snapshot-card.is-entering.is-revealing .memory-card-reveal-content {
+	opacity: 1;
+	filter: blur(0);
+}
+
+.relationship-memory-page .memory-card-organic-shimmer {
+	--shimmer-dur: 1400ms;
+	--shimmer-ease: ease-out;
+	--shimmer-band-span: 26%;
+	--shimmer-opacity: 0.82;
+	--shimmer-glow-blur: 20px;
+	--shimmer-glow-strength: 0.46;
+	--shimmer-ring-strength: 0.72;
+	--shimmer-scale: 2.4;
+	--shimmer-blue-deep: 35 45 58;
+	--shimmer-blue-mid: 49 65 87;
+	--shimmer-blue-base: 114 151 207;
+	--shimmer-blue-soft: 66 88 119;
+	--shimmer-blue-light: 82 107 143;
+	--shimmer-blue-ice: 96 124 164;
+
+	position: absolute;
+	z-index: 10;
+	inset: 0;
+	overflow: hidden;
+	border-radius: inherit;
+	background: var(--memory-card-surface, var(--app-surface));
+	isolation: isolate;
+	opacity: 1;
+	filter: blur(0);
+	transition:
+		opacity 400ms cubic-bezier(0.22, 1, 0.36, 1),
+		filter 400ms cubic-bezier(0.22, 1, 0.36, 1);
+	pointer-events: none;
+}
+
+.relationship-memory-page
+	.memory-snapshot-card.is-active:not(.is-exiting):not(.is-exit-source):not(.is-scope-rejected)
+	.memory-card-reveal-content {
+	pointer-events: auto;
+}
+
+.relationship-memory-page .memory-active-panel.is-ruler-traveling .memory-card-reveal-content {
+	pointer-events: none;
+}
+
+.relationship-memory-page .memory-card-organic-shimmer-filter {
+	position: absolute;
+	width: 0;
+	height: 0;
+	pointer-events: none;
+}
+
+.relationship-memory-page .memory-card-organic-shimmer.is-revealed {
+	opacity: 0;
+	filter: blur(3px);
+}
+
+.relationship-memory-page .memory-card-organic-shimmer-wave {
+	position: absolute;
+	inset: calc(-20px * var(--shimmer-scale));
+	opacity: var(--shimmer-opacity);
+	filter: url("#memory-card-organic-shimmer-warp") blur(calc(5px * var(--shimmer-scale)));
+	pointer-events: none;
+}
+
+.relationship-memory-page .memory-card-organic-shimmer-band {
+	position: absolute;
+	inset: 0;
+	background:
+		radial-gradient(ellipse 49.45% 38.46% at 20% 15%, rgb(var(--shimmer-blue-base) / 11%), transparent),
+		radial-gradient(ellipse 43.96% 32.97% at 65% 25%, rgb(var(--shimmer-blue-soft) / 9%), transparent),
+		radial-gradient(ellipse 38.46% 43.96% at 30% 55%, rgb(var(--shimmer-blue-deep) / 9%), transparent),
+		radial-gradient(ellipse 49.45% 38.46% at 75% 65%, rgb(var(--shimmer-blue-mid) / 10%), transparent),
+		radial-gradient(ellipse 38.46% 32.97% at 45% 85%, rgb(var(--shimmer-blue-light) / 8%), transparent),
+		radial-gradient(ellipse 32.97% 32.97% at 10% 85%, rgb(var(--shimmer-blue-ice) / 7%), transparent),
+		linear-gradient(rgb(var(--shimmer-blue-base) / 3%), rgb(var(--shimmer-blue-base) / 3%));
+	-webkit-mask-image: linear-gradient(
+		135deg,
+		transparent 0%,
+		transparent calc(50% - var(--shimmer-band-span) * 0.8),
+		rgb(255 255 255 / 25%) calc(50% - var(--shimmer-band-span) * 0.45),
+		rgb(255 255 255 / 70%) calc(50% - var(--shimmer-band-span) * 0.18),
+		white 50%,
+		rgb(255 255 255 / 70%) calc(50% + var(--shimmer-band-span) * 0.18),
+		rgb(255 255 255 / 25%) calc(50% + var(--shimmer-band-span) * 0.45),
+		transparent calc(50% + var(--shimmer-band-span) * 0.8),
+		transparent 100%
+	);
+	mask-image: linear-gradient(
+		135deg,
+		transparent 0%,
+		transparent calc(50% - var(--shimmer-band-span) * 0.8),
+		rgb(255 255 255 / 25%) calc(50% - var(--shimmer-band-span) * 0.45),
+		rgb(255 255 255 / 70%) calc(50% - var(--shimmer-band-span) * 0.18),
+		white 50%,
+		rgb(255 255 255 / 70%) calc(50% + var(--shimmer-band-span) * 0.18),
+		rgb(255 255 255 / 25%) calc(50% + var(--shimmer-band-span) * 0.45),
+		transparent calc(50% + var(--shimmer-band-span) * 0.8),
+		transparent 100%
+	);
+	-webkit-mask-repeat: no-repeat;
+	mask-repeat: no-repeat;
+	-webkit-mask-position: 100% 100%;
+	mask-position: 100% 100%;
+	-webkit-mask-size: 280% 280%;
+	mask-size: 280% 280%;
+	animation: memory-card-organic-shimmer-sweep var(--shimmer-dur) var(--shimmer-ease) both;
+	pointer-events: none;
+}
+
+.relationship-memory-page .memory-card-organic-shimmer-edge {
+	position: absolute;
+	z-index: 1;
+	inset: calc(-20px * var(--shimmer-scale));
+	opacity: var(--shimmer-glow-strength);
+	-webkit-mask-image: linear-gradient(
+		135deg,
+		transparent 0%,
+		transparent calc(50% - var(--shimmer-band-span) * 1.4),
+		rgb(255 255 255 / 6%) calc(50% - var(--shimmer-band-span)),
+		rgb(255 255 255 / 18%) calc(50% - var(--shimmer-band-span) * 0.6),
+		rgb(255 255 255 / 45%) calc(50% - var(--shimmer-band-span) * 0.25),
+		white 50%,
+		rgb(255 255 255 / 50%) calc(50% + var(--shimmer-band-span) * 0.18),
+		transparent calc(50% + var(--shimmer-band-span) * 0.35),
+		transparent 100%
+	);
+	mask-image: linear-gradient(
+		135deg,
+		transparent 0%,
+		transparent calc(50% - var(--shimmer-band-span) * 1.4),
+		rgb(255 255 255 / 6%) calc(50% - var(--shimmer-band-span)),
+		rgb(255 255 255 / 18%) calc(50% - var(--shimmer-band-span) * 0.6),
+		rgb(255 255 255 / 45%) calc(50% - var(--shimmer-band-span) * 0.25),
+		white 50%,
+		rgb(255 255 255 / 50%) calc(50% + var(--shimmer-band-span) * 0.18),
+		transparent calc(50% + var(--shimmer-band-span) * 0.35),
+		transparent 100%
+	);
+	-webkit-mask-repeat: no-repeat;
+	mask-repeat: no-repeat;
+	-webkit-mask-position: 100% 100%;
+	mask-position: 100% 100%;
+	-webkit-mask-size: 280% 280%;
+	mask-size: 280% 280%;
+	animation: memory-card-organic-shimmer-sweep var(--shimmer-dur) var(--shimmer-ease) both;
+	pointer-events: none;
+}
+
+.relationship-memory-page .memory-card-organic-shimmer-edge-ring,
+.relationship-memory-page .memory-card-organic-shimmer-edge-glow,
+.relationship-memory-page .memory-card-organic-shimmer-edge-bloom {
+	position: absolute;
+	inset: calc(20px * var(--shimmer-scale));
+	border-radius: var(--memory-card-radius);
+	pointer-events: none;
+}
+
+.relationship-memory-page .memory-card-organic-shimmer-edge-ring {
+	padding: calc(1px * var(--shimmer-scale));
+	opacity: var(--shimmer-ring-strength);
+	background:
+		radial-gradient(ellipse 29.58% 16.9% at 33% -7.4%, rgb(var(--shimmer-blue-soft) / 44%), transparent),
+		radial-gradient(ellipse 25.35% 14.79% at 12% -5%, rgb(var(--shimmer-blue-base) / 36%), transparent),
+		radial-gradient(ellipse 16.9% 29.58% at 2.1% 68.3%, rgb(var(--shimmer-blue-mid) / 38%), transparent),
+		radial-gradient(ellipse 8.45% 14.79% at 2.1% 68.3%, rgb(var(--shimmer-blue-deep) / 32%), transparent),
+		radial-gradient(ellipse 76.06% 13.38% at 74.4% 100%, rgb(var(--shimmer-blue-light) / 39%), transparent),
+		radial-gradient(ellipse 35.92% 11.27% at 55% 100%, rgb(var(--shimmer-blue-base) / 37%), transparent),
+		radial-gradient(ellipse 30.99% 13.38% at 93.9% 0%, rgb(var(--shimmer-blue-ice) / 42%), transparent),
+		radial-gradient(ellipse 11.27% 17.61% at 100% 27.1%, rgb(var(--shimmer-blue-soft) / 34%), transparent),
+		radial-gradient(ellipse 21.83% 20.42% at 100% 27.1%, rgb(var(--shimmer-blue-mid) / 39%), transparent),
+		linear-gradient(rgb(var(--shimmer-blue-base) / 14%), rgb(var(--shimmer-blue-base) / 14%));
+	-webkit-mask:
+		linear-gradient(#fff 0 0) content-box,
+		linear-gradient(#fff 0 0);
+	mask:
+		linear-gradient(#fff 0 0) content-box,
+		linear-gradient(#fff 0 0);
+	-webkit-mask-composite: xor;
+	mask-composite: exclude;
+}
+
+.relationship-memory-page .memory-card-organic-shimmer-edge-glow {
+	background:
+		radial-gradient(ellipse 27.46% 14.79% at 33% -7.4%, rgb(var(--shimmer-blue-soft) / 24%), transparent),
+		radial-gradient(ellipse 23.24% 12.68% at 12% -5%, rgb(var(--shimmer-blue-base) / 20%), transparent),
+		radial-gradient(ellipse 14.79% 27.46% at 2.1% 68.3%, rgb(var(--shimmer-blue-mid) / 21%), transparent),
+		radial-gradient(ellipse 6.34% 12.68% at 2.1% 68.3%, rgb(var(--shimmer-blue-deep) / 18%), transparent),
+		radial-gradient(ellipse 73.24% 11.97% at 74.4% 100%, rgb(var(--shimmer-blue-light) / 22%), transparent),
+		radial-gradient(ellipse 33.8% 9.15% at 55% 100%, rgb(var(--shimmer-blue-base) / 20%), transparent),
+		radial-gradient(ellipse 28.87% 11.97% at 93.9% 0%, rgb(var(--shimmer-blue-ice) / 24%), transparent),
+		radial-gradient(ellipse 9.15% 16.2% at 100% 27.1%, rgb(var(--shimmer-blue-soft) / 19%), transparent),
+		radial-gradient(ellipse 19.72% 18.31% at 100% 27.1%, rgb(var(--shimmer-blue-mid) / 21%), transparent),
+		radial-gradient(ellipse 25.35% 25.35% at 0% 0%, rgb(var(--shimmer-blue-base) / 9%), transparent 70%),
+		radial-gradient(ellipse 25.35% 25.35% at 100% 0%, rgb(var(--shimmer-blue-base) / 9%), transparent 70%),
+		radial-gradient(ellipse 25.35% 25.35% at 0% 100%, rgb(var(--shimmer-blue-base) / 9%), transparent 70%),
+		radial-gradient(ellipse 25.35% 25.35% at 100% 100%, rgb(var(--shimmer-blue-base) / 9%), transparent 70%);
+	box-shadow: inset 0 0 calc(14px * var(--shimmer-scale)) calc(1px * var(--shimmer-scale))
+		rgb(var(--shimmer-blue-base) / 8%);
+	filter: blur(calc(2px * var(--shimmer-scale)));
+	-webkit-mask-image:
+		linear-gradient(
+			white,
+			transparent calc(44px * var(--shimmer-scale)),
+			transparent calc(100% - 44px * var(--shimmer-scale)),
+			white
+		),
+		linear-gradient(
+			to right,
+			white,
+			transparent calc(44px * var(--shimmer-scale)),
+			transparent calc(100% - 44px * var(--shimmer-scale)),
+			white
+		);
+	mask-image:
+		linear-gradient(
+			white,
+			transparent calc(44px * var(--shimmer-scale)),
+			transparent calc(100% - 44px * var(--shimmer-scale)),
+			white
+		),
+		linear-gradient(
+			to right,
+			white,
+			transparent calc(44px * var(--shimmer-scale)),
+			transparent calc(100% - 44px * var(--shimmer-scale)),
+			white
+		);
+	-webkit-mask-composite: source-over;
+	mask-composite: add;
+}
+
+.relationship-memory-page .memory-card-organic-shimmer-edge-bloom {
+	background:
+		radial-gradient(ellipse 38.73% 21.83% at 33% -7.4%, rgb(var(--shimmer-blue-soft) / 28%), transparent),
+		radial-gradient(ellipse 33.1% 19.01% at 12% -5%, rgb(var(--shimmer-blue-base) / 24%), transparent),
+		radial-gradient(ellipse 21.83% 38.73% at 2.1% 68.3%, rgb(var(--shimmer-blue-mid) / 26%), transparent),
+		radial-gradient(ellipse 98.59% 17.61% at 74.4% 100%, rgb(var(--shimmer-blue-light) / 27%), transparent),
+		radial-gradient(ellipse 46.48% 14.08% at 55% 100%, rgb(var(--shimmer-blue-base) / 25%), transparent),
+		radial-gradient(ellipse 40.85% 17.61% at 93.9% 0%, rgb(var(--shimmer-blue-ice) / 29%), transparent),
+		radial-gradient(ellipse 28.17% 26.76% at 100% 27.1%, rgb(var(--shimmer-blue-deep) / 25%), transparent);
+	box-shadow: inset 0 0 calc(var(--shimmer-glow-blur) * 3 * var(--shimmer-scale))
+		calc(var(--shimmer-glow-blur) / 2 * var(--shimmer-scale)) rgb(var(--shimmer-blue-base) / 7%);
+	filter: blur(calc(var(--shimmer-glow-blur) * var(--shimmer-scale)));
+	-webkit-mask-image:
+		linear-gradient(
+			white,
+			transparent calc(26px * var(--shimmer-scale)),
+			transparent calc(100% - 26px * var(--shimmer-scale)),
+			white
+		),
+		linear-gradient(
+			to right,
+			white,
+			transparent calc(26px * var(--shimmer-scale)),
+			transparent calc(100% - 26px * var(--shimmer-scale)),
+			white
+		);
+	mask-image:
+		linear-gradient(
+			white,
+			transparent calc(26px * var(--shimmer-scale)),
+			transparent calc(100% - 26px * var(--shimmer-scale)),
+			white
+		),
+		linear-gradient(
+			to right,
+			white,
+			transparent calc(26px * var(--shimmer-scale)),
+			transparent calc(100% - 26px * var(--shimmer-scale)),
+			white
+		);
+	-webkit-mask-composite: source-over;
+	mask-composite: add;
+}
+
+@keyframes memory-card-organic-shimmer-sweep {
+	from {
+		-webkit-mask-position: 100% 100%;
+		mask-position: 100% 100%;
+	}
+
+	to {
+		-webkit-mask-position: 0% 0%;
+		mask-position: 0% 0%;
+	}
+}
+
+@keyframes memory-card-materialize {
+	from {
+		opacity: 0;
+		transform: translate3d(0, 14px, 0) scale(0.985);
+	}
+
+	to {
+		opacity: 1;
+		transform: translate3d(0, 0, 0) scale(1);
+	}
+}
+
+.relationship-memory-page .memory-virtual-list {
+	position: relative;
+	overflow-anchor: none;
+}
+.relationship-memory-page .memory-virtual-slot {
+	position: absolute;
+	left: 0;
+	right: 0;
+}
+.relationship-memory-page .memory-virtual-slot > .relationship-memory-list {
+	display: flow-root;
+	margin: 0;
+}

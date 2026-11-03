@@ -1,0 +1,23 @@
+{
+	"extends": "../tsconfig.base.json",
+	"compilerOptions": {
+		"outDir": "dist",
+		"rootDir": ".",
+		"types": ["node"],
+		"composite": true,
+		"paths": {
+			"@readymeet/shared/*": ["../shared/*"],
+			"@readymeet/openai-responses": ["../openai-responses/adapters/secondary/vercel/responses.ts"]
+		}
+	},
+	"include": [
+		"index.ts",
+		"adapters/**/*.ts",
+		"application/**/*.ts",
+		"composition/**/*.ts",
+		"domain/**/*.ts",
+		"ports/**/*.ts",
+		"tests/**/*.ts",
+		"scripts/**/*.ts"
+	]
+}

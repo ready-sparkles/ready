@@ -1,0 +1,44 @@
+<svg width="1280" height="800" viewBox="0 0 1280 800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow" x="-12%" y="-12%" width="124%" height="124%">
+      <feDropShadow dx="0" dy="20" stdDeviation="24" flood-color="#202124" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+  <rect width="1280" height="800" fill="#F8FAFD"/>
+  <rect x="0" y="0" width="1280" height="72" fill="#FFFFFF"/>
+  <text x="72" y="46" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="22" font-weight="650" fill="#202124">Calendar</text>
+  <text x="72" y="122" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="38" font-weight="720" fill="#202124">Your free Ready account starts in Calendar</text>
+  <text x="72" y="160" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="20" fill="#5F6368">First use creates or reuses the account automatically—no separate signup or browser login.</text>
+
+  <rect x="98" y="204" width="760" height="462" rx="18" fill="#FFFFFF" stroke="#DADCE0" filter="url(#shadow)"/>
+  <g opacity="0.7">
+    <line x1="138" y1="278" x2="818" y2="278" stroke="#DADCE0"/>
+    <line x1="138" y1="358" x2="818" y2="358" stroke="#DADCE0"/>
+    <line x1="138" y1="438" x2="818" y2="438" stroke="#DADCE0"/>
+    <line x1="138" y1="518" x2="818" y2="518" stroke="#DADCE0"/>
+    <line x1="270" y1="230" x2="270" y2="626" stroke="#DADCE0"/>
+    <line x1="470" y1="230" x2="470" y2="626" stroke="#DADCE0"/>
+    <line x1="670" y1="230" x2="670" y2="626" stroke="#DADCE0"/>
+  </g>
+  <rect x="482" y="360" width="272" height="72" rx="8" fill="#D7B9F4"/>
+  <text x="506" y="392" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="20" font-weight="650" fill="#FFFFFF">Team sync</text>
+  <text x="506" y="420" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="19" fill="#FFFFFF">2 - 3pm</text>
+
+  <rect x="894" y="178" width="288" height="520" rx="18" fill="#FFFFFF" stroke="#DADCE0" filter="url(#shadow)"/>
+  <rect x="894" y="178" width="288" height="70" rx="18" fill="#FFFFFF"/>
+  <g>
+    <circle cx="941" cy="217" r="19" fill="#4F67FF"/>
+    <path d="M922 217a19 19 0 0 1 38 0Z" fill="#4638F2"/>
+    <text x="941" y="227" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="27" font-weight="520" fill="#E8ECFF">31</text>
+  </g>
+  <text x="974" y="224" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="20" font-weight="650" fill="#202124">Ready</text>
+  <rect x="922" y="282" width="232" height="172" rx="12" fill="#F8FAFD" stroke="#E8EAED"/>
+  <text x="944" y="328" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="22" font-weight="650" fill="#202124">Ready is connected</text>
+  <text x="944" y="368" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="16" fill="#5F6368">Your free account works</text>
+  <text x="944" y="394" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="16" fill="#5F6368">immediately. Choose Ready</text>
+  <text x="944" y="420" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="16" fill="#5F6368">Meeting on any event.</text>
+  <rect x="922" y="488" width="232" height="56" rx="28" fill="#1967D2"/>
+  <text x="981" y="523" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="17" font-weight="650" fill="#FFFFFF">Open Ready</text>
+  <text x="922" y="596" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="16" fill="#5F6368">Your verified Google identity</text>
+  <text x="922" y="622" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="16" fill="#5F6368">secures add-on sign-in.</text>
+</svg>

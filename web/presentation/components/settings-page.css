@@ -1,0 +1,335 @@
+/* Shared settings presentation, scoped away from workspace and modal controls. */
+/* Keep settings text compact; main page titles are the exception below. */
+.settings-fullscreen .settings-panel,
+.settings-fullscreen .settings-panel .settings-section,
+.settings-fullscreen .settings-panel .settings-section * {
+	font-size: 13px;
+}
+
+.settings-fullscreen {
+	--settings-content-width: 640px;
+}
+
+.settings-fullscreen .settings-panel {
+	background: var(--app-surface);
+}
+
+.settings-panel .relationship-memory-settings {
+	--text-strong: inherit;
+	--text-default: inherit;
+	--text-muted: inherit;
+	--text-subtle: inherit;
+	--app-surface: inherit;
+}
+
+.settings-panel .settings-section {
+	gap: 24px;
+	margin-top: 32px;
+	padding-bottom: 48px;
+}
+
+.settings-panel :is(.settings-section-header, .settings-feature-header) {
+	margin-bottom: 24px;
+}
+
+.settings-fullscreen .settings-panel .settings-section :is(.settings-section-header, .settings-feature-header) h1 {
+	font-size: 32px;
+	font-weight: 600;
+	line-height: 1.2;
+	letter-spacing: -0.025em;
+}
+
+.settings-panel .settings-section-title {
+	gap: 14px;
+}
+
+.settings-fullscreen .settings-panel .settings-section :is(.settings-section-title p, .settings-feature-header p) {
+	color: var(--text-secondary);
+	font-size: 12px;
+	line-height: 1.6;
+}
+
+.settings-panel .settings-control-group {
+	display: grid;
+	gap: 18px;
+}
+
+.settings-panel .settings-group-title {
+	margin: 0;
+	color: var(--text-strong);
+	font-size: 13px;
+	font-weight: 550;
+	line-height: 1.4;
+}
+
+.settings-panel .settings-account-section {
+	gap: 0;
+}
+
+.settings-panel .settings-account-section > .settings-section-header {
+	margin-bottom: 48px;
+}
+
+.settings-panel .settings-account-section > .settings-appearance-panel,
+.settings-panel .settings-account-section > .settings-account-action-list {
+	margin-top: 48px;
+}
+
+.settings-fullscreen
+	.settings-panel
+	:is(
+		.settings-profile-panel,
+		.settings-appearance-panel,
+		.settings-account-action-list,
+		.settings-calendar-account-list:not(:empty),
+		.settings-mail-account-list:not(:empty),
+		.settings-workspace-admin-card,
+		.settings-feature-card,
+		.relationship-memory-setting,
+		.settings-billing-plan-card,
+		.settings-billing-credits-card,
+		.members-table-wrap
+	) {
+	border: 1px solid var(--app-divider);
+	border-radius: 18px;
+	background: var(--app-surface);
+	box-shadow: none;
+}
+
+.settings-panel
+	:is(
+		.settings-profile-panel,
+		.settings-account-action-list,
+		.settings-calendar-account-list:not(:empty),
+		.settings-mail-account-list:not(:empty)
+	) {
+	padding: 0 14px;
+}
+
+.settings-panel
+	:is(
+		.settings-profile-row,
+		.settings-account-action-row,
+		.settings-calendar-account-row,
+		.settings-mail-account-row
+	) {
+	min-height: 52px;
+	padding: 14px 0;
+	border-bottom-color: var(--app-divider);
+}
+
+.settings-panel
+	:is(
+		.settings-profile-row,
+		.settings-account-action-row,
+		.settings-calendar-account-row,
+		.settings-mail-account-row
+	):last-child {
+	border-bottom: 0;
+}
+
+.settings-panel :is(.settings-appearance-panel, .settings-feature-card, .relationship-memory-setting) {
+	min-height: 56px;
+	padding: 14px;
+	gap: 16px;
+}
+
+.settings-panel :is(.settings-feature-card-copy label, .settings-workspace-admin-label) {
+	font-size: 13px;
+	font-weight: 500;
+}
+
+.settings-panel :is(.settings-feature-card-copy p, .settings-connector-status, .relationship-memory-setting p) {
+	color: var(--text-secondary);
+	font-size: 13px;
+	line-height: 1.5;
+	margin-top: 4px;
+}
+
+.settings-fullscreen
+	.settings-panel
+	:is(
+		.settings-kind-dropdown-button,
+		.settings-row-secondary-button,
+		.settings-row-danger-button,
+		.settings-card-secondary-button,
+		.settings-card-danger-button,
+		.settings-secondary-button,
+		.slack-settings-save,
+		.settings-danger-button,
+		.settings-accent-button,
+		.settings-billing-cancel-button,
+		.settings-billing-manage-button,
+		.settings-billing-upgrade-button,
+		.settings-calendar-connect-button,
+		.settings-profile-name-input,
+		.members-invite-button
+	) {
+	min-height: 34px;
+	height: auto;
+	border-radius: 10px;
+	font-size: 13px;
+	font-weight: 500;
+	box-shadow: none;
+}
+
+.settings-panel .settings-kind-dropdown-button {
+	border-color: var(--app-divider);
+	padding: 8px 12px;
+}
+
+.settings-panel .settings-feature-switch {
+	width: 38px;
+	height: 24px;
+	flex-basis: 38px;
+}
+
+.settings-panel .settings-feature-switch::before {
+	width: 18px;
+	height: 18px;
+}
+
+.settings-panel .settings-feature-switch:checked {
+	background: #3478f6;
+}
+
+.settings-panel .settings-feature-switch:checked::before {
+	background: #fff;
+	transform: translateX(14px);
+}
+
+.settings-fullscreen .settings-panel input[role="switch"]:focus,
+.settings-fullscreen .settings-panel input[role="switch"]:focus-visible {
+	outline: none;
+	box-shadow: none;
+}
+
+.settings-panel .settings-workspace-admin-card {
+	gap: 0;
+	padding: 0 14px;
+}
+
+.settings-panel .settings-workspace-admin-field {
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	padding: 14px 0;
+}
+
+.settings-panel .settings-workspace-admin-hint {
+	grid-column: 1 / -1;
+}
+
+.settings-panel .settings-billing-panel {
+	gap: 32px;
+}
+
+.settings-panel :is(.settings-billing-plan-card, .settings-billing-credits-card) {
+	padding: 16px;
+	gap: 12px;
+}
+
+.settings-panel .settings-billing-section {
+	border-top-color: var(--app-divider);
+}
+
+.settings-panel .settings-billing-section h3 {
+	font-weight: 550;
+}
+
+.settings-panel .settings-connectors-section .settings-section-title {
+	gap: 6px;
+}
+
+.settings-connectors-section .settings-calendar-account-label {
+	gap: 12px;
+}
+
+.settings-connectors-section .settings-calendar-account-logo {
+	width: 40px;
+	height: 40px;
+	box-sizing: border-box;
+	border: 1px solid var(--app-divider);
+	border-radius: 11px;
+	background: var(--app-surface);
+}
+
+.settings-connectors-section .settings-calendar-account-logo > svg {
+	width: 26px;
+	height: 26px;
+}
+
+.settings-linear-logo {
+	color: #222326;
+}
+
+html[data-theme="dark"] .settings-linear-logo {
+	color: #f4f5f8;
+}
+
+@media (max-width: 820px) {
+	.settings-fullscreen .settings-sidebar {
+		min-width: 0;
+	}
+
+	.settings-fullscreen .settings-tabs,
+	.settings-fullscreen .settings-features-group .workspace-category-list {
+		display: flex;
+		gap: 4px;
+		overflow-x: auto;
+		min-width: 0;
+		padding-bottom: 4px;
+	}
+
+	.settings-fullscreen .settings-features-group {
+		min-width: 0;
+	}
+
+	.settings-fullscreen .settings-tab-button {
+		flex: 0 0 auto;
+		width: max-content;
+		min-height: 36px;
+	}
+
+	.settings-panel .settings-section {
+		margin-top: 12px;
+	}
+
+	.settings-panel :is(.settings-profile-row, .settings-workspace-admin-field) {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 12px;
+	}
+
+	.settings-panel .settings-profile-value,
+	.settings-panel .settings-profile-avatar {
+		justify-self: start;
+	}
+
+	.settings-panel .settings-workspace-admin-logo-row {
+		flex-wrap: wrap;
+	}
+}
+
+.settings-features-heading {
+	margin: 24px 12px 8px;
+	color: var(--text-secondary);
+	font-size: 12px;
+	font-weight: 500;
+}
+
+.meeting-intelligence-feature {
+	display: grid;
+	gap: 12px;
+}
+
+.meeting-intelligence-model-row {
+	grid-column: 1 / -1;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+
+.meeting-intelligence-model-row .settings-kind-dropdown {
+	max-width: 100%;
+}

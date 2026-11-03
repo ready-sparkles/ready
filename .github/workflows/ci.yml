@@ -1,0 +1,168 @@
+name: CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: ci-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    react-doctor:
+        name: React Doctor
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.event.pull_request.head.sha }}
+                  fetch-depth: 0
+                  persist-credentials: false
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+
+            - name: Install dependencies
+              run: |
+                  corepack enable
+                  pnpm install --frozen-lockfile
+
+            - name: Test React Doctor CI gate
+              run: node --test scripts/tests/validate-react-doctor-report.test.mjs
+
+            - name: Check React error counts against baseline
+              env:
+                  BASE_SHA: ${{ github.event.pull_request.base.sha }}
+              run: |
+                  set +e
+                  pnpm dlx react-doctor@0.9.17 web \
+                    --scope changed --base "$BASE_SHA" --blocking error --yes --no-telemetry --json > react-doctor-report.json
+                  doctor_status=$?
+                  node scripts/validate-react-doctor-report.mjs react-doctor-report.json
+                  validation_status=$?
+                  if [ "$doctor_status" -ne 0 ]; then
+                    exit "$doctor_status"
+                  fi
+                  exit "$validation_status"
+
+    node:
+        name: Typecheck, lint, and test (Node)
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+        services:
+            postgres:
+                image: postgres:17
+                env:
+                    POSTGRES_USER: postgres
+                    POSTGRES_PASSWORD: postgres
+                    POSTGRES_DB: readymeet_ci
+                ports:
+                    - 5432:5432
+                options: >-
+                    --health-cmd "pg_isready -U postgres"
+                    --health-interval 5s
+                    --health-timeout 5s
+                    --health-retries 10
+        env:
+            # Repository tests run against the service container; the remaining
+            # values are dummies that satisfy the zod env schemas; no external
+            # network calls are made.
+            DATABASE_URL: postgres://postgres:postgres@localhost:5432/readymeet_ci
+            MEMORY_ISOLATED_DB: "1"
+            GUEST_PREVIEW_ISOLATED_DB: "1"
+            ACCOUNT_DELETION_ISOLATED_DB: "1"
+            READYMEET_ISOLATED_DB: "1"
+            AUTH_JWT_SECRET: ci_dummy_jwt_secret_0123456789
+            LIVEKIT_URL: wss://ci.livekit.invalid
+            LIVEKIT_API_KEY: ci_dummy_key
+            LIVEKIT_API_SECRET: ci_dummy_secret
+            LIVEKIT_WEBHOOK_SECRET: ci_dummy_webhook_secret
+            ASSISTANT_SERVICE_URL: http://localhost:4100
+            ASSISTANT_SERVICE_SECRET: ci_dummy_assistant_secret
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  persist-credentials: false
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+
+            - name: Test CI runner routing
+              run: node --test scripts/tests/ci-runner-routing.test.mjs
+
+            - name: Enable corepack (pnpm)
+              run: corepack enable
+
+            - name: Get pnpm store directory
+              id: pnpm-store
+              run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+            - uses: actions/cache@v4
+              with:
+                  path: ${{ steps.pnpm-store.outputs.path }}
+                  key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+                  restore-keys: pnpm-store-${{ runner.os }}-
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Migrate and seed test database
+              run: |
+                  pnpm db:migrate
+                  NODE_ENV=test pnpm --filter @readymeet/db exec node --import tsx --import ./tests/content-key-preload.ts seed.ts
+
+            - name: Typecheck
+              run: pnpm typecheck
+
+            - name: Lint
+              run: |
+                  pnpm lint:verify
+                  pnpm lint
+
+            # Database-backed workers claim shared queues. Run packages and their
+            # DB-backed test files serially; discover all tests instead of naming files.
+            - name: Test (all Node suites and isolated database regressions)
+              run: pnpm -r --workspace-concurrency=1 test
+
+    python:
+        name: Test (${{ matrix.service }})
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        strategy:
+            fail-fast: false
+            matrix:
+                service: [livekit-realtime, meeting-agent]
+        defaults:
+            run:
+                working-directory: ${{ matrix.service }}
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  persist-credentials: false
+
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: "3.12"
+                  cache: pip
+                  cache-dependency-path: ${{ matrix.service }}/requirements*.txt
+
+            - name: Install dependencies
+              run: pip install -r requirements-dev.txt
+
+            - name: Compile Python sources
+              run: python -m compileall -q .
+
+            - name: Test
+              run: python -m pytest tests -q

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0" xsi:type="MailApp">
+  <Id>20a9792f-729c-4a96-8292-b52b1c5e7cbb</Id>
+  <Version>1.0.1.0</Version>
+  <ProviderName>Ready Sparkles, Inc.</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="Ready"/>
+  <Description DefaultValue="Add Ready video meetings to your Outlook calendar invitations."/>
+  <IconUrl DefaultValue="https://ready.app/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://ready.app/icon-128.png"/>
+  <SupportUrl DefaultValue="https://ready.app/docs"/>
+  <AppDomains><AppDomain>https://ready.app</AppDomain></AppDomains>
+  <Hosts><Host Name="Mailbox"/></Hosts>
+  <Requirements><Sets><Set Name="Mailbox" MinVersion="1.8"/></Sets></Requirements>
+  <FormSettings><Form xsi:type="ItemEdit"><DesktopSettings><SourceLocation DefaultValue="https://ready.app/outlook/taskpane.html"/></DesktopSettings></Form></FormSettings>
+  <Permissions>ReadWriteItem</Permissions>
+  <Rule xsi:type="ItemIs" ItemType="Appointment" FormType="Edit"/>
+  <DisableEntityHighlighting>false</DisableEntityHighlighting>
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Requirements><bt:Sets DefaultMinVersion="1.8"><bt:Set Name="Mailbox"/></bt:Sets></Requirements>
+    <Hosts><Host xsi:type="MailHost"><DesktopFormFactor>
+      <FunctionFile resid="Taskpane.Url"/>
+      <ExtensionPoint xsi:type="AppointmentOrganizerCommandSurface"><OfficeTab id="TabDefault"><Group id="Ready.Group">
+        <Label resid="Ready.Label"/>
+        <Control xsi:type="Button" id="Ready.AddMeeting"><Label resid="Add.Label"/>
+          <Supertip><Title resid="Add.Label"/><Description resid="Add.Description"/></Supertip>
+          <Icon><bt:Image size="16" resid="Icon.16"/><bt:Image size="32" resid="Icon.32"/><bt:Image size="80" resid="Icon.80"/></Icon>
+          <Action xsi:type="ShowTaskpane"><SourceLocation resid="Taskpane.Url"/></Action>
+        </Control>
+      </Group></OfficeTab></ExtensionPoint>
+    </DesktopFormFactor></Host></Hosts>
+    <Resources>
+      <bt:Images><bt:Image id="Icon.16" DefaultValue="https://ready.app/outlook/icon-16.png"/><bt:Image id="Icon.32" DefaultValue="https://ready.app/icon-32.png"/><bt:Image id="Icon.80" DefaultValue="https://ready.app/outlook/icon-80.png"/></bt:Images>
+      <bt:Urls><bt:Url id="Taskpane.Url" DefaultValue="https://ready.app/outlook/taskpane.html"/></bt:Urls>
+      <bt:ShortStrings><bt:String id="Ready.Label" DefaultValue="Ready"/><bt:String id="Add.Label" DefaultValue="Add Ready meeting"/></bt:ShortStrings>
+      <bt:LongStrings><bt:String id="Add.Description" DefaultValue="Create a Ready meeting and add its join link and dial-in details to this invitation."/></bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>

@@ -1,0 +1,39 @@
+node_modules
+db/generated
+.pnpm-store
+.next
+out
+dist
+coverage
+*.tsbuildinfo
+.env
+.env.local
+.DS_Store
+__pycache__
+.pytest_cache
+.venv
+.gstack/
+# Unanchored so it also covers nested packages: the root-anchored form let a
+# stray web/.claude/launch.json through.
+**/.claude/launch.json
+
+# Isolated Next.js preview/build caches
+.next-*/
+
+# Private local database snapshots and environment backups
+.local/
+
+# Generated local LiveKit test credentials
+/web/public/media-quality-test-tokens.json
+
+# Generated code-structure index
+.codegraph/
+
+# Terraform working state and plans; provider lockfiles are checked in.
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.auto.tfvars
+*.auto.tfvars.json
+crash.log

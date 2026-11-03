@@ -1,0 +1,67 @@
+<svg width="1280" height="800" viewBox="0 0 1280 800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow" x="-12%" y="-12%" width="124%" height="124%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#202124" flood-opacity="0.14"/>
+    </filter>
+    <filter id="menuShadow" x="-18%" y="-18%" width="136%" height="136%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#202124" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+  <rect width="1280" height="800" fill="#F8FAFD"/>
+  <rect x="0" y="0" width="1280" height="72" fill="#FFFFFF"/>
+  <text x="72" y="46" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="22" font-weight="650" fill="#202124">Calendar</text>
+  <text x="72" y="122" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="38" font-weight="720" fill="#202124">Choose Ready Meeting from Add video conferencing</text>
+  <text x="72" y="160" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="20" fill="#5F6368">Ready for Google Calendar™ adds conferencing from the event editor.</text>
+
+  <g opacity="0.65">
+    <line x1="64" y1="220" x2="1216" y2="220" stroke="#DADCE0"/>
+    <line x1="64" y1="300" x2="1216" y2="300" stroke="#DADCE0"/>
+    <line x1="64" y1="380" x2="1216" y2="380" stroke="#DADCE0"/>
+    <line x1="64" y1="460" x2="1216" y2="460" stroke="#DADCE0"/>
+    <line x1="64" y1="540" x2="1216" y2="540" stroke="#DADCE0"/>
+    <line x1="64" y1="620" x2="1216" y2="620" stroke="#DADCE0"/>
+    <line x1="184" y1="188" x2="184" y2="700" stroke="#DADCE0"/>
+    <line x1="384" y1="188" x2="384" y2="700" stroke="#DADCE0"/>
+    <line x1="584" y1="188" x2="584" y2="700" stroke="#DADCE0"/>
+    <line x1="784" y1="188" x2="784" y2="700" stroke="#DADCE0"/>
+    <line x1="984" y1="188" x2="984" y2="700" stroke="#DADCE0"/>
+  </g>
+
+  <rect x="206" y="198" width="642" height="468" rx="18" fill="#FFFFFF" stroke="#DADCE0" filter="url(#shadow)"/>
+  <circle cx="246" cy="246" r="10" fill="#AECBFA"/>
+  <text x="278" y="256" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="31" font-weight="520" fill="#202124">Team sync</text>
+  <text x="278" y="292" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="19" fill="#5F6368">Friday, July 10 · 2:00 - 3:00pm</text>
+  <rect x="238" y="326" width="540" height="1.5" fill="#E8EAED"/>
+
+  <text x="238" y="371" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="17" fill="#5F6368">Guests</text>
+  <rect x="238" y="392" width="304" height="42" rx="21" fill="#F1F3F4"/>
+  <text x="260" y="420" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="17" fill="#3C4043">personaa@example.com</text>
+
+  <text x="238" y="472" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="17" fill="#5F6368">Video conferencing</text>
+  <rect x="238" y="493" width="300" height="48" rx="6" fill="#FFFFFF" stroke="#DADCE0"/>
+  <text x="262" y="524" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="18" font-weight="520" fill="#1967D2">Add video conferencing</text>
+  <path d="M508 511 L518 521 L528 511" fill="none" stroke="#5F6368" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <rect x="238" y="548" width="370" height="184" rx="8" fill="#FFFFFF" stroke="#DADCE0" filter="url(#menuShadow)"/>
+  <text x="262" y="588" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="17" fill="#3C4043">Video meeting provider</text>
+  <rect x="250" y="610" width="346" height="48" rx="6" fill="#E8F0FE"/>
+  <g>
+    <circle cx="286" cy="634" r="16" fill="#4F67FF"/>
+    <path d="M270 634a16 16 0 0 1 32 0Z" fill="#4638F2"/>
+    <text x="286" y="643" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="23" font-weight="520" fill="#E8ECFF">31</text>
+  </g>
+  <text x="318" y="641" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="18" font-weight="650" fill="#174EA6">Ready Meeting</text>
+  <text x="318" y="682" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="18" fill="#3C4043">No video conferencing</text>
+  <text x="318" y="716" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="18" fill="#3C4043">More options</text>
+
+  <rect x="896" y="256" width="276" height="236" rx="16" fill="#FFFFFF" stroke="#DADCE0" filter="url(#shadow)"/>
+  <g>
+    <circle cx="953" cy="315" r="27" fill="#4F67FF"/>
+    <path d="M926 315a27 27 0 0 1 54 0Z" fill="#4638F2"/>
+    <text x="953" y="329" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="39" font-weight="520" fill="#E8ECFF">31</text>
+  </g>
+  <text x="996" y="318" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="22" font-weight="650" fill="#202124">Ready</text>
+  <text x="926" y="382" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="18" font-weight="650" fill="#202124">Ready is connected</text>
+  <text x="926" y="418" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="16" fill="#5F6368">Your free account is ready.</text>
+  <text x="926" y="444" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="16" fill="#5F6368">Pick Ready Meeting to start.</text>
+</svg>

@@ -1,0 +1,13 @@
+{
+	"name": "@readymeet/meeting-agent",
+	"version": "0.1.0",
+	"license": "BUSL-1.1",
+	"private": true,
+	"scripts": {
+		"dev": "sh ./select-python.sh run.py dev",
+		"build": "sh -c 'sh ./select-python.sh -m venv .venv && .venv/bin/python -m pip install --upgrade pip && .venv/bin/python -m pip install -r requirements.txt'",
+		"start": "sh ./select-python.sh run.py start",
+		"typecheck": "sh -c 'PYTHON_BIN=.venv/bin/python3; if [ ! -x \"$PYTHON_BIN\" ]; then PYTHON_BIN=python3; fi; PYTHONPYCACHEPREFIX=/tmp/readymeet-pyc exec \"$PYTHON_BIN\" -m compileall meeting_agent run.py'",
+		"lint": "sh -c 'PYTHON_BIN=.venv/bin/python3; if [ ! -x \"$PYTHON_BIN\" ]; then PYTHON_BIN=python3; fi; PYTHONPYCACHEPREFIX=/tmp/readymeet-pyc exec \"$PYTHON_BIN\" -m compileall meeting_agent run.py'"
+	}
+}

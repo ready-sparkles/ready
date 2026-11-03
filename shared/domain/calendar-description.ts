@@ -1,0 +1,52 @@
+export const READY_MEET_DESCRIPTION_BLOCK_START = "<!-- READY_MEET_BLOCK_V1_START -->";
+export const READY_MEET_DESCRIPTION_BLOCK_END = "<!-- READY_MEET_BLOCK_V1_END -->";
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+export function buildReadyMeetCalendarDescriptionBlock(input: {
+  joinUrl: string;
+  callIn?: { phoneNumber: string; pin: string } | null;
+}): string {
+  const label = input.joinUrl.replace(/^https?:\/\//, "");
+  const dialInLine =
+    input.callIn === undefined || input.callIn === null
+      ? null
+      : `<b>Dial-in: ${escapeHtml(displayPhoneNumber(input.callIn.phoneNumber))} PIN: ${escapeHtml(input.callIn.pin.replace(/#+$/, ""))}#</b>`;
+  const lines = [
+    `<b>Join meeting: <a href="${escapeHtml(input.joinUrl)}">${escapeHtml(label)}</a></b>`,
+    ...(dialInLine === null ? [] : [dialInLine]),
+  ];
+
+  return [READY_MEET_DESCRIPTION_BLOCK_START, lines.join("<br>\n"), READY_MEET_DESCRIPTION_BLOCK_END].join("\n");
+}
+
+export function buildReadyMeetCalendarDescriptionText(input: {
+  joinUrl: string;
+  callIn?: { phoneNumber: string; pin: string } | null;
+}): string {
+  const dialInLine =
+    input.callIn === undefined || input.callIn === null
+      ? null
+      : `Dial-in: ${displayPhoneNumber(input.callIn.phoneNumber)} PIN: ${input.callIn.pin.replace(/#+$/, "")}#`;
+  const lines = [`Join meeting: ${input.joinUrl}`, ...(dialInLine === null ? [] : [dialInLine])];
+
+  return lines.join("\n");
+}
+
+function displayPhoneNumber(phone: string): string {
+  const usPhone = /^\+1(\d{3})(\d{3})(\d{4})$/.exec(phone.replace(/[\s()-]/g, ""));
+  const areaCode = usPhone?.[1];
+  const centralOfficeCode = usPhone?.[2];
+  const lineNumber = usPhone?.[3];
+
+  return areaCode === undefined || centralOfficeCode === undefined || lineNumber === undefined
+    ? phone
+    : `(US) +1 ${areaCode}-${centralOfficeCode}-${lineNumber}`;
+}

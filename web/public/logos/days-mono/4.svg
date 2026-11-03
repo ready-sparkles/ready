@@ -1,0 +1,30 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="ready-upper" x1="0" y1="6.8" x2="0" y2="63.2" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#161616"/>
+<stop offset="1" stop-color="#5E5E5E"/>
+</linearGradient>
+<linearGradient id="ready-lower" x1="0" y1="63.2" x2="0" y2="119.6" gradientUnits="userSpaceOnUse">
+<stop offset="0" stop-color="#6E6E6E"/>
+<stop offset="1" stop-color="#D2D2D2"/>
+</linearGradient>
+</defs>
+<path d="M59.9999 119.602C93.0269 119.602 119.801 92.8278 119.801 59.8008C119.801 26.7737 93.0269 0 59.9999 0C26.9728 0 0.199097 26.7737 0.199097 59.8008C0.199097 92.8278 26.9728 119.602 59.9999 119.602Z" fill="url(#ready-lower)"/>
+<path d="M60 119.611C93.1371 119.611 120 94.3603 120 63.212C120 32.0637 93.1371 6.81299 60 6.81299C26.8629 6.81299 0 32.0637 0 63.212C0 94.3603 26.8629 119.611 60 119.611Z" fill="url(#ready-lower)"/>
+<path d="M120 63.2119H0V63.36H120V63.2119Z" fill="#E6E6E6"/>
+<mask id="mask0_2401_627" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="6" width="120" height="58">
+<path d="M120 6.81299H0V63.212H120V6.81299Z" fill="white"/>
+</mask>
+<g mask="url(#mask0_2401_627)">
+<path d="M60 119.611C93.1371 119.611 120 94.3603 120 63.212C120 32.0637 93.1371 6.81299 60 6.81299C26.8629 6.81299 0 32.0637 0 63.212C0 94.3603 26.8629 119.611 60 119.611Z" fill="url(#ready-upper)"/>
+</g>
+<path d="M37.8828 77.7727V71.3807L60.5107 35.6364H65.5476V45.0455H62.3516L46.1669 70.6648V71.0739H77.1811V77.7727H37.8828ZM62.7095 88V75.8295L62.7607 72.9148V35.6364H70.2521V88H62.7095Z" fill="#FFFFFF"/>
+<g opacity="0.35">
+<mask id="mask1_2401_627" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="6" width="120" height="58">
+<path d="M120 6.81299H0V63.212H120V6.81299Z" fill="white"/>
+</mask>
+<g mask="url(#mask1_2401_627)">
+<path d="M60 119.611C93.1371 119.611 120 94.3603 120 63.212C120 32.0637 93.1371 6.81299 60 6.81299C26.8629 6.81299 0 32.0637 0 63.212C0 94.3603 26.8629 119.611 60 119.611Z" fill="url(#ready-upper)"/>
+</g>
+</g>
+</svg>
