@@ -1,0 +1,26 @@
+/** Shared task eligibility and evidence rules for live and post-meeting extraction. */
+export const MEETING_TASK_IDENTIFICATION_RULES = `- Capture only real post-meeting commitments, assignments, agreed near-term follow-ups, and explicit requests to fix or change a concrete observed problem.
+- Be conservative. Prefer a short, useful list over a long noisy list.
+- Create a task only when a human participant explicitly commits to it, directly assigns it, the participants clearly agree that it is a near-term follow-up, or a participant explicitly says that a concrete observed bug or issue needs to be fixed or changed.
+- Explicit requests to fix or change a specific observed problem qualify. This proves the work was requested, but owner inference must come from explicit or contextual responsibility elsewhere in the transcript.
+- An exploratory question is not promotion evidence by itself. When it appears beside an explicit fix/change statement, use the fix/change statement as the qualifying source evidence and treat the question only as supporting scope when appropriate.
+- A plain problem observation is not a task without explicit fix, change, or other action language.
+- A feature description, technical explanation, recommendation, wish, possible future direction, existing workflow, or unresolved discussion is not a task by itself.
+- A product, roadmap, planning, or sprint meeting does not lower the evidence bar. Treat product ideas, desired capabilities, user needs, workstreams, and known bugs as discussion until the participants explicitly promote them into current work.
+- Promotion into current work requires at least one of: a direct assignment, a participant's accepted commitment, an explicit agreement to do the work in the near term, an explicit request to fix or change a concrete observed problem, or an explicit agreement to add or prioritize the item in a named sprint, backlog, or plan.
+- If the transcript has no real backlog or planning artifact, do not invent an "add to backlog" task merely to preserve an otherwise speculative idea.
+- Statements such as "we need this soon", "the third workstream is X", "there is a bug list", or "users arrive next week" describe priority or context; they do not prove that anyone agreed to perform the work.
+- Include an open question only when someone explicitly agrees to investigate or answer it after the meeting.
+- Do not create tasks from requests addressed to the in-meeting AI assistant for immediate help, such as "search the internet", "look this up", "summarize that", "draft this now", or "find X for me", when the assistant attempts or completes the request during the meeting.
+- A request to the AI assistant only becomes a Ready Task if the transcript clearly says the work should remain unfinished after the meeting, be tracked later, or be assigned to a human or external system.
+- Do not create tasks for general discussion topics, vague intentions, speculative ideas, background context, or decisions with no follow-up.
+- Do not turn roadmap ideas or work explicitly deferred to a later phase into current tasks.
+- Do not create a task for information that was requested and supplied during the meeting; that work is already complete.
+- Ignore assistant-authored transcript segments. An assistant suggestion is never evidence of a human commitment.
+- Deduplicate repeated mentions of the same task.
+- Prioritize explicit closing commitments and process follow-through over earlier exploratory possibilities when both are present.
+- Combine related follow-ups into one task when they serve the same outcome.
+- Do not combine different outcomes merely because they occur in the same follow-up. If different people own different parts, split them into separate tasks. Ownership evidence must support the whole outcome of the owned task.
+- Offering contact details or another input for someone else's task does not make the speaker the owner of that broader task.
+- Every task must include at least one exact source quote from the transcript.
+- At least one source quote must show the actual commitment, assignment, or agreement to follow up; an explicit request to fix or change a concrete observed problem also qualifies. Descriptive context alone is insufficient.`;

@@ -1,0 +1,9 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		// Next.js forces "jsx": "preserve" in tsconfig.json, but the node:test
+		// runner executes through tsx/esbuild, which needs a concrete JSX
+		// transform. Components use the automatic runtime (no React import).
+		"jsx": "react-jsx"
+	}
+}

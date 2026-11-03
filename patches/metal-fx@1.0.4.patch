@@ -1,0 +1,15 @@
+diff --git a/dist/index.es.js b/dist/index.es.js
+--- a/dist/index.es.js
++++ b/dist/index.es.js
+@@ -428,9 +428,9 @@ function Se() {
+   }
+   if (!r) throw new Error("metal-fx: WebGL not supported");
+   const { program: a, buffer: s, uniforms: d } = ke(r), l = (u) => {
+-    u.preventDefault(), i && (i.contextLost = !0);
++    u.preventDefault(), i && i.glCanvas === o && (i.contextLost = !0);
+   }, c = () => {
+-    if (!i) return;
++    if (!i || i.glCanvas !== o) return;
+     const u = ke(i.gl);
+     i.program = u.program, i.buffer = u.buffer, i.uniforms = u.uniforms, i.presetDirty = !0, i.contextLost = !1, le == null || le();
+   };

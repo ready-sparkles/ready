@@ -1,0 +1,10 @@
+{
+	"scriptId": "108DaHwfLvQ5IiMIrOQgWtMvO6NMTTSvh8Le4LdjzY7hoDZbY7zxJ3OlN",
+	"projectId": "ready-meetings",
+	"rootDir": "dist",
+	"scriptExtensions": [".js", ".gs"],
+	"htmlExtensions": [".html"],
+	"jsonExtensions": [".json"],
+	"filePushOrder": ["Implementation.js", "Code.js"],
+	"skipSubdirectories": false
+}

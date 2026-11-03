@@ -1,0 +1,184 @@
+.workspace-mobile-meeting-back,
+.workspace-mobile-meeting-back.workspace-upcoming-calendar-nav-button {
+	display: none;
+}
+
+@media (max-width: 1000px) {
+	.workspace-layout:has(.workspace-mobile-meeting-navigation.is-mobile-detail-open) .workspace-mobile-navigation {
+		display: none;
+	}
+
+	.workspace-mobile-meeting-navigation .workspace-upcoming-event-section-title {
+		font-size: 14px;
+	}
+
+	.workspace-mobile-meeting-navigation .workspace-upcoming-event-block {
+		height: 81px;
+	}
+
+	.workspace-mobile-meeting-navigation
+		.workspace-past-meetings-screen
+		.workspace-upcoming-event-block:not(.is-selected)::after {
+		right: 12px;
+	}
+
+	.workspace-mobile-meeting-navigation .workspace-upcoming-event-block strong {
+		font-size: 17px;
+	}
+
+	.workspace-mobile-meeting-navigation .workspace-upcoming-event-subtitle,
+	.workspace-mobile-meeting-navigation .workspace-past-meeting-recent-subtitle {
+		font-size: 15px;
+	}
+
+	.workspace-content:has(.workspace-mobile-meeting-navigation.is-calendar-connected) {
+		height: 100dvh;
+		min-height: 0;
+		padding: 0;
+		overflow: hidden;
+	}
+
+	.meeting-page.workspace-mobile-meeting-navigation.is-calendar-connected {
+		height: 100dvh;
+		min-height: 0;
+		overflow: hidden;
+	}
+
+	.workspace-mobile-meeting-navigation .workspace-upcoming-calendar-screen {
+		display: block;
+		position: relative;
+		height: 100%;
+		overflow: hidden;
+		isolation: isolate;
+	}
+
+	.workspace-mobile-meeting-navigation .workspace-upcoming-calendar-board,
+	.workspace-mobile-meeting-navigation .workspace-meeting-brief-placeholder,
+	.workspace-mobile-meeting-navigation .workspace-past-meeting-detail-region {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		min-height: 0;
+		transition:
+			transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
+			visibility 360ms;
+	}
+
+	.workspace-mobile-meeting-navigation .workspace-upcoming-calendar-board {
+		transform: translateX(0);
+	}
+
+	.workspace-mobile-meeting-navigation.is-mobile-detail-open .workspace-upcoming-calendar-board {
+		transform: translateX(-25%);
+	}
+
+	.workspace-mobile-meeting-navigation .workspace-meeting-brief-placeholder,
+	.workspace-mobile-meeting-navigation .workspace-past-meeting-detail-region {
+		z-index: 5;
+		visibility: hidden;
+		transform: translateX(100%);
+		background: var(--app-canvas, #fff);
+		border: 0;
+		box-shadow: -8px 0 28px rgb(0 0 0 / 6%);
+	}
+
+	.workspace-mobile-meeting-navigation.is-mobile-detail-open .workspace-meeting-brief-placeholder,
+	.workspace-mobile-meeting-navigation.is-mobile-detail-open .workspace-past-meeting-detail-region {
+		visibility: visible;
+		transform: translateX(0);
+	}
+
+	.workspace-mobile-meeting-navigation .workspace-meeting-brief-placeholder {
+		overflow-y: auto;
+	}
+
+	.workspace-mobile-meeting-navigation .workspace-meeting-brief-content {
+		margin-top: 0;
+		padding: 76px 20px 34px;
+	}
+
+	.workspace-mobile-meeting-navigation .workspace-past-meeting-detail-pane {
+		height: 100%;
+		min-height: 0;
+		padding-inline: 20px;
+		border: 0;
+		overflow-y: auto;
+		overscroll-behavior-y: contain;
+	}
+
+	.workspace-mobile-meeting-navigation .workspace-past-meeting-detail-region::before {
+		content: "";
+		position: absolute;
+		inset: 0 0 auto;
+		z-index: 35;
+		height: 88px;
+		background: linear-gradient(
+			to bottom,
+			var(--app-canvas, #fff) 0,
+			var(--app-canvas, #fff) 56px,
+			transparent 100%
+		);
+		pointer-events: none;
+	}
+
+	.workspace-mobile-meeting-navigation .workspace-mobile-meeting-back {
+		position: absolute;
+		top: 21px;
+		left: 56px;
+		z-index: 40;
+		display: inline-flex;
+	}
+
+	.workspace-mobile-meeting-navigation .workspace-mobile-meeting-back:not(.workspace-upcoming-calendar-nav-button) {
+		align-items: center;
+		gap: 8px;
+		height: 29px;
+		padding: 0 10px;
+		border: 0;
+		border-radius: 999px;
+		background: var(--app-canvas, #fff);
+		color: var(--text-strong);
+		font: inherit;
+		font-size: 14px;
+		cursor: pointer;
+	}
+
+	.workspace-mobile-meeting-navigation .workspace-mobile-meeting-back.workspace-upcoming-calendar-nav-button {
+		top: calc(35.5px - var(--workspace-toolbar-control-height) / 2);
+		left: 14px;
+		display: grid;
+	}
+
+	.workspace-mobile-meeting-navigation .workspace-meeting-detail-page .meeting-page-controls {
+		position: fixed;
+		top: 21px;
+		right: 14px;
+		z-index: 40;
+	}
+
+	.workspace-mobile-meeting-back:not(.workspace-upcoming-calendar-nav-button) svg {
+		width: 9px;
+		height: 13px;
+		transform: rotate(180deg);
+	}
+
+	.workspace-mobile-meeting-back:not(.workspace-upcoming-calendar-nav-button) > svg,
+	.workspace-mobile-meeting-back:not(.workspace-upcoming-calendar-nav-button) > span {
+		position: relative;
+		top: -0.25px;
+	}
+
+	.workspace-mobile-meeting-back:focus-visible {
+		outline: 2px solid var(--ready-blue);
+		outline-offset: 2px;
+	}
+}
+
+@media (max-width: 1000px) and (prefers-reduced-motion: reduce) {
+	.workspace-mobile-meeting-navigation .workspace-upcoming-calendar-board,
+	.workspace-mobile-meeting-navigation .workspace-meeting-brief-placeholder,
+	.workspace-mobile-meeting-navigation .workspace-past-meeting-detail-region {
+		transition: none;
+	}
+}

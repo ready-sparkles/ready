@@ -1,0 +1,12 @@
+packages:
+    - web
+    - api
+    - assistant
+    - db
+    - shared
+    - openai-responses
+    - meeting-agent
+
+blockExoticSubdeps: true
+minimumReleaseAge: 10080
+trustPolicy: no-downgrade

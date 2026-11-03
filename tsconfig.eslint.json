@@ -1,0 +1,29 @@
+{
+	"extends": "./tsconfig.base.json",
+	"compilerOptions": {
+		"noEmit": true,
+		"allowImportingTsExtensions": true,
+		"allowJs": true,
+		"checkJs": false,
+		"jsx": "preserve",
+		"paths": {
+			"@readymeet/shared": ["shared/index.ts"],
+			"@readymeet/shared/*": ["shared/*"],
+			"@readymeet/db": ["db/index.ts"],
+			"@readymeet/db/*": ["db/*"],
+			"@readymeet/openai-responses": ["openai-responses/adapters/secondary/vercel/responses.ts"],
+			"@/*": ["web/*"]
+		}
+	},
+	"include": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts", "**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs"],
+	"exclude": [
+		"**/node_modules/**",
+		"**/dist/**",
+		"**/.next/**",
+		"**/.next-*/**",
+		"**/coverage/**",
+		"**/.venv/**",
+		"**/.codegraph/**",
+		"db/generated/**"
+	]
+}

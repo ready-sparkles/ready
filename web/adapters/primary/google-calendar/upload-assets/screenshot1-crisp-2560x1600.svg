@@ -1,0 +1,71 @@
+<svg width="2560" height="1600" viewBox="0 0 2560 1600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="cardShadow" x="-16%" y="-16%" width="132%" height="132%">
+      <feDropShadow dx="0" dy="24" stdDeviation="28" flood-color="#1F2937" flood-opacity="0.10"/>
+    </filter>
+    <filter id="menuShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#1F2937" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+
+  <rect width="2560" height="1600" fill="#F8F8F8"/>
+  <text x="1280" y="228" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="78" font-weight="720" fill="#3C4043">Schedule a Ready meeting</text>
+
+  <g filter="url(#cardShadow)">
+    <rect x="650" y="374" width="958" height="648" rx="36" fill="#EAF1FC"/>
+    <text x="700" y="438" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="26" fill="#3C4043">=</text>
+    <text x="1564" y="438" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="34" fill="#202124">×</text>
+
+    <text x="790" y="548" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="48" fill="#3C4043">Add title</text>
+    <line x1="790" y1="566" x2="1578" y2="566" stroke="#AAB0B7" stroke-width="2"/>
+
+    <rect x="790" y="602" width="106" height="74" rx="16" fill="#A7E7F6"/>
+    <text x="843" y="650" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="28" fill="#202124">Event</text>
+    <text x="934" y="649" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="28" fill="#202124">Task</text>
+    <text x="1038" y="649" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="28" fill="#202124">Out of office</text>
+    <text x="1258" y="649" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="28" fill="#202124">Appointment schedule</text>
+
+    <g transform="translate(705 752)" fill="none" stroke="#202124" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="18" cy="18" r="16"/>
+      <path d="M18 8v12l8 5"/>
+    </g>
+    <text x="790" y="754" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="28" fill="#202124">Friday, July 3</text>
+    <text x="998" y="754" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="28" fill="#202124">12:00pm - 1:00pm</text>
+    <text x="790" y="789" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="22" fill="#202124">Time zone · Does not repeat</text>
+
+    <g transform="translate(706 838)" fill="none" stroke="#202124" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="15" cy="11" r="7"/>
+      <path d="M4 33c1-10 23-10 25 0"/>
+      <circle cx="31" cy="14" r="5"/>
+      <path d="M25 31c2-6 16-6 18 0"/>
+    </g>
+    <text x="790" y="865" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="28" fill="#202124">Add guests</text>
+
+    <g transform="translate(706 920)">
+      <rect x="0" y="8" width="28" height="22" rx="5" fill="#FABB05"/>
+      <path d="M28 16l14-8v30l-14-8z" fill="#FABB05"/>
+    </g>
+    <text x="790" y="949" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="28" fill="#202124">Add Google Meet video conferencing</text>
+    <path d="M1320 938l8 8 8-8" fill="none" stroke="#202124" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <g filter="url(#menuShadow)">
+    <rect x="1290" y="980" width="486" height="324" rx="18" fill="#E9EFF8"/>
+    <g transform="translate(1318 1048)">
+      <rect x="0" y="8" width="28" height="22" rx="5" fill="#FABB05"/>
+      <path d="M28 16l14-8v30l-14-8z" fill="#FABB05"/>
+    </g>
+    <text x="1390" y="1060" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="29" fill="#202124">Google Meet</text>
+    <text x="1390" y="1100" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="27" fill="#3C4043">Default for your organization</text>
+    <line x1="1290" y1="1160" x2="1776" y2="1160" stroke="#D2DAE6" stroke-width="2"/>
+    <text x="1533" y="1205" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="21" font-weight="700" fill="#4A4F56">ADD-ONS</text>
+    <rect x="1290" y="1226" width="486" height="78" fill="#DDE6F1"/>
+    <g transform="translate(1312 1248)">
+      <circle cx="22" cy="22" r="22" fill="#4F67FF"/>
+      <path d="M0 22a22 22 0 0 1 44 0Z" fill="#4638F2"/>
+      <text x="22" y="31" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="28" fill="#E8ECFF">31</text>
+    </g>
+    <text x="1390" y="1275" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="29" fill="#202124">Ready Meeting</text>
+    <path d="M1626 1266c0-9 13-9 13 0v34m0-25c0-9 13-9 13 0v25m0-22c0-9 13-9 13 0v22m0-18c0-8 12-8 12 0v25c0 23-16 40-39 40h-12c-12 0-21-5-28-15l-30-42c-4-6 3-14 9-10l24 16v-76c0-9 13-9 13 0v55" fill="#FFFFFF" stroke="#202124" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

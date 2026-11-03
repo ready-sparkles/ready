@@ -1,0 +1,29 @@
+{
+	"name": "@readymeet/assistant-service",
+	"version": "0.1.0",
+	"license": "BUSL-1.1",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "corepack pnpm --filter @readymeet/db generate && NODE_ENV=development node --import tsx index.ts",
+		"dev:watch": "corepack pnpm --filter @readymeet/db generate && NODE_ENV=development tsx watch index.ts",
+		"build": "tsc -p tsconfig.build.json",
+		"start": "corepack pnpm --filter @readymeet/db generate && NODE_ENV=production node --import tsx dist/index.js",
+		"typecheck": "tsc --noEmit",
+		"lint": "eslint adapters application composition domain index.ts ports tests --ext .ts",
+		"test": "NODE_ENV=test node --import tsx --import @readymeet/db/testing/content-key-preload --test --test-concurrency=1 \"tests/**/*.test.ts\""
+	},
+	"dependencies": {
+		"@livekit/protocol": "^1.45.3",
+		"@readymeet/db": "workspace:*",
+		"@readymeet/openai-responses": "workspace:*",
+		"@readymeet/shared": "workspace:*",
+		"@sentry/node": "^10.65.0",
+		"dotenv": "^16.5.0",
+		"fastify": "^5.12.7",
+		"livekit-server-sdk": "^2.15.1",
+		"openai": "^4.95.1",
+		"undici": "^7.30.1",
+		"zod": "^3.24.3"
+	}
+}

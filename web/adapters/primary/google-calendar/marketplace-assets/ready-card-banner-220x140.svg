@@ -1,0 +1,19 @@
+<svg width="220" height="140" viewBox="0 0 220 140" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="220" y2="140" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F8FAFC"/>
+      <stop offset="1" stop-color="#EEF3FF"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#1F4ED6" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+  <rect width="220" height="140" rx="0" fill="url(#bg)"/>
+  <g filter="url(#shadow)">
+    <circle cx="50" cy="68" r="28" fill="#4F67FF"/>
+    <path d="M22 68a28 28 0 0 1 56 0Z" fill="#4638F2"/>
+    <text x="50" y="83" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="42" font-weight="520" fill="#E8ECFF">31</text>
+  </g>
+  <text x="90" y="65" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="26" font-weight="700" fill="#202124">Ready</text>
+  <text x="90" y="88" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" fill="#5F6368">for Google Calendar™</text>
+</svg>

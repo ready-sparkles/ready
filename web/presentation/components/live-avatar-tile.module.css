@@ -1,0 +1,161 @@
+.avatarTile {
+	background: var(--meeting-avatar-tile-background);
+	backdrop-filter: blur(18px) saturate(130%);
+}
+
+.speechFrame {
+	--avatar-speech-scale: 0.78;
+	--avatar-speech-opacity: 0;
+	position: relative;
+	width: clamp(84px, 11.8vw, 124px);
+	height: clamp(84px, 11.8vw, 124px);
+	/* Even-pixel snap (browsers with round()): a fractional diameter puts the
+     circle's bottom edge on a half-pixel whose antialiasing shifts between
+     repaints. */
+	width: round(nearest, clamp(84px, 11.8vw, 124px), 2px);
+	height: round(nearest, clamp(84px, 11.8vw, 124px), 2px);
+	display: grid;
+	place-items: center;
+	transform-origin: center;
+	scale: var(--meeting-avatar-scale, 1);
+	backface-visibility: hidden;
+}
+
+.speechHalo {
+	position: absolute;
+	inset: 8%;
+	border-radius: 999px;
+	background: radial-gradient(
+		circle at 50% 45%,
+		rgba(116, 214, 255, 0.46),
+		rgba(84, 185, 255, 0.24) 62%,
+		rgba(94, 198, 255, 0.12) 100%
+	);
+	box-shadow:
+		0 0 18px rgba(84, 185, 255, 0.14),
+		0 12px 30px rgba(0, 0, 0, 0.14);
+	opacity: var(--avatar-speech-opacity);
+	transform: scale(var(--avatar-speech-scale));
+	visibility: hidden;
+	backface-visibility: hidden;
+	/* Own compositing layer: transform/opacity ticks stay on the compositor
+     and never trigger a repaint of the avatar circle above. */
+	will-change: transform, opacity;
+	/* Slow exit on purpose: the halo's gradient bulges below the circle
+     (center 50% 45%), so a fast fade turns brief voice-detection dropouts
+     into a visible blink along the avatar's bottom edge. */
+	transition:
+		opacity 240ms ease,
+		transform 240ms ease,
+		visibility 0ms linear 240ms;
+}
+
+.isSpeaking .speechHalo {
+	visibility: visible;
+	box-shadow:
+		0 0 22px rgba(84, 185, 255, 0.2),
+		0 16px 36px rgba(0, 0, 0, 0.16);
+	transition:
+		opacity 60ms linear,
+		transform 60ms linear,
+		visibility 0ms linear 0ms;
+}
+
+.media {
+	position: relative;
+	z-index: 1;
+	width: clamp(64px, 9vw, 92px);
+	height: clamp(64px, 9vw, 92px);
+	width: round(nearest, clamp(64px, 9vw, 92px), 2px);
+	height: round(nearest, clamp(64px, 9vw, 92px), 2px);
+	border-radius: 999px;
+	overflow: hidden;
+	clip-path: circle(50% at 50% 50%);
+	display: grid;
+	place-items: center;
+	isolation: isolate;
+	backface-visibility: hidden;
+	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.04) 100%), rgba(255, 255, 255, 0.04);
+	box-shadow: 0 14px 30px rgba(0, 0, 0, 0.18);
+}
+
+.initialsMedia {
+	background: var(--meeting-avatar-background);
+	border: var(--meeting-avatar-border);
+	box-shadow: none;
+}
+
+.media::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	box-shadow: inset 0 0 0 3px #adc6ff;
+	border-radius: inherit;
+	/* Same mask geometry as the container: border-radius and clip-path circles
+     rasterize slightly differently, and per-frame speech-level repaints made
+     that mismatch shimmer as a seam at the ring's bottom edge. */
+	clip-path: circle(50% at 50% 50%);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 200ms ease;
+}
+
+.isSpeaking .media::after {
+	opacity: 1;
+	transition: opacity 60ms linear;
+}
+
+.mediaLoading {
+	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%), rgba(255, 255, 255, 0.02);
+}
+
+.image,
+.fallback {
+	width: 100%;
+	height: 100%;
+}
+
+.image {
+	display: block;
+	object-fit: cover;
+	opacity: 0;
+	border-radius: inherit;
+	clip-path: circle(50% at 50% 50%);
+	backface-visibility: hidden;
+	transition: opacity 180ms ease;
+}
+
+.imageReady {
+	opacity: 1;
+}
+
+.fallback {
+	position: static;
+	inset: auto;
+	top: auto;
+	right: auto;
+	bottom: auto;
+	left: auto;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 0;
+	min-height: 0;
+	color: #f5f8ff;
+	font-size: clamp(1.45rem, 2.8vw, 2.05rem);
+	font-weight: 650;
+	letter-spacing: 0.03em;
+	line-height: 1;
+	text-align: center;
+	transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.speechHalo {
+		transition: opacity 160ms ease;
+		transform: scale(1.08);
+	}
+}

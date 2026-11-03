@@ -1,0 +1,22 @@
+{
+	"name": "@readymeet/openai-responses",
+	"version": "0.1.0",
+	"license": "BUSL-1.1",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./adapters/secondary/vercel/responses.ts",
+		"./typesafe": "./adapters/secondary/vercel/typesafe.ts"
+	},
+	"scripts": {
+		"build": "tsc -p tsconfig.build.json",
+		"typecheck": "tsc --noEmit",
+		"lint": "eslint adapters tests --ext .ts",
+		"test": "tsx --test tests/adapters/secondary/vercel/*.test.ts"
+	},
+	"dependencies": {
+		"@ai-sdk/openai": "4.0.93",
+		"ai": "7.0.140",
+		"zod": "^3.24.3"
+	}
+}

@@ -1,0 +1,23 @@
+{
+	"name": "@readymeet/shared",
+	"version": "0.1.0",
+	"license": "BUSL-1.1",
+	"private": true,
+	"type": "module",
+	"main": "index.ts",
+	"types": "index.ts",
+	"exports": {
+		".": "./index.ts",
+		"./server/voice-research-evidence": "./domain/voice-research-evidence.ts"
+	},
+	"scripts": {
+		"build": "tsc -p tsconfig.build.json",
+		"typecheck": "tsc --noEmit",
+		"lint": "eslint . --ext .ts",
+		"test": "node --import tsx --test \"tests/**/*.test.ts\""
+	},
+	"dependencies": {
+		"tldts": "^7.4.15",
+		"zod": "^3.24.3"
+	}
+}

@@ -1,0 +1,30 @@
+.person {
+	background: #0a0a0c;
+	color: #fff;
+}
+.person :global(.live-presence-panel.is-open) {
+	animation: none;
+}
+.guest .join {
+	min-height: 564px;
+	padding: 24px 64px;
+	grid-template-columns: minmax(0, 1fr) 360px;
+	/* Match the space beside the join button to the full capture's outer inset. */
+	column-gap: 64px;
+}
+.guest :global(.meeting-join-preview) {
+	width: 100%;
+}
+
+.voice {
+	background:
+		radial-gradient(ellipse at 50% 110%, rgba(134, 134, 139, 0.24), transparent 62%),
+		linear-gradient(180deg, #000000 28%, #171719 50%, #29292c 66%);
+}
+.voice :global(.live-controls-bar) {
+	top: 50%;
+	bottom: auto;
+	left: 50%;
+	transform: translate(-50%, -50%) scale(1.55);
+	transform-origin: center;
+}

@@ -1,0 +1,65 @@
+{
+	"name": "readymeet",
+	"private": true,
+	"version": "0.1.0",
+	"license": "BUSL-1.1",
+	"packageManager": "pnpm@10.34.9",
+	"scripts": {
+		"dev": "corepack pnpm --filter @readymeet/db generate && READYMEET_PRISMA_GENERATED=1 concurrently --kill-others-on-fail \"corepack pnpm dev:livekit-realtime\" \"corepack pnpm --filter @readymeet/api dev\" \"corepack pnpm --filter @readymeet/assistant-service dev:watch\" \"corepack pnpm --filter @readymeet/meeting-agent dev\" \"corepack pnpm --filter @readymeet/web dev\"",
+		"build": "corepack pnpm -r build",
+		"build:web": "corepack pnpm --filter @readymeet/web build",
+		"build:api": "corepack pnpm --filter @readymeet/api build",
+		"build:assistant": "corepack pnpm --filter @readymeet/assistant-service build",
+		"build:meeting-agent": "corepack pnpm --filter @readymeet/meeting-agent build",
+		"build:livekit-realtime": "sh -c 'cd livekit-realtime && sh ./select-python.sh -m venv --clear .venv && .venv/bin/python -m pip install --upgrade pip && .venv/bin/python -m pip install -r requirements.txt'",
+		"dev:livekit-realtime": "sh -c 'cd livekit-realtime && exec sh ./select-python.sh -m uvicorn app.main:app --app-dir . --host 0.0.0.0 --port 4200'",
+		"dev:livekit-realtime:reload": "sh -c 'cd livekit-realtime && exec sh ./select-python.sh -m uvicorn app.main:app --app-dir . --reload --host 0.0.0.0 --port 4200'",
+		"start:web": "corepack pnpm --filter @readymeet/web start",
+		"start:api": "corepack pnpm db:migrate && corepack pnpm start:api:server",
+		"start:api:server": "corepack pnpm --filter @readymeet/api start",
+		"start:assistant": "corepack pnpm --filter @readymeet/assistant-service start",
+		"start:meeting-agent": "corepack pnpm --filter @readymeet/meeting-agent start",
+		"start:livekit-realtime": "sh -c 'cd livekit-realtime && exec sh ./select-python.sh -m uvicorn app.main:app --app-dir . --host 0.0.0.0 --port 4200'",
+		"typecheck": "corepack pnpm typecheck:tooling && corepack pnpm -r typecheck",
+		"lint": "node scripts/lint-workspace.mjs",
+		"test": "corepack pnpm -r test",
+		"format": "prettier --write .",
+		"db:migrate": "corepack pnpm --filter @readymeet/db migrate",
+		"db:migration:new": "corepack pnpm --filter @readymeet/db migration:new",
+		"db:seed": "corepack pnpm --filter @readymeet/db seed",
+		"lint:verify": "node --test tooling/tests/*.test.mjs",
+		"typecheck:tooling": "tsc -p tsconfig.tooling.json"
+	},
+	"devDependencies": {
+		"@eslint/js": "9.39.4",
+		"@types/eslint": "9.6.1",
+		"@types/node": "22.20.5",
+		"@typescript-eslint/utils": "8.71.1",
+		"concurrently": "^9.1.2",
+		"eslint": "9.39.5",
+		"eslint-config-codely": "4.5.0",
+		"eslint-config-prettier": "10.1.8",
+		"eslint-import-resolver-typescript": "4.4.5",
+		"eslint-plugin-boundaries": "7.2.0",
+		"jiti": "2.6.1",
+		"prettier": "3.8.1",
+		"tsx": "4.21.0",
+		"typescript": "5.9.3",
+		"typescript-eslint": "8.71.1"
+	},
+	"pnpm": {
+		"patchedDependencies": {
+			"metal-fx@1.0.4": "patches/metal-fx@1.0.4.patch"
+		},
+		"overrides": {
+			"fast-uri@<3.1.9": "^3.1.9",
+			"find-my-way@<9.7.0": "^9.7.0",
+			"ws@>=8.0.0 <8.21.0": "^8.21.0",
+			"form-data@>=4.0.0 <4.0.6": "^4.0.6",
+			"postcss@<8.5.18": "^8.5.18",
+			"nanoid@<3.3.18": "^3.3.18",
+			"source-map-js@<1.2.2": "^1.2.2",
+			"sharp@<0.35.5": "^0.35.5"
+		}
+	}
+}

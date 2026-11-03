@@ -1,0 +1,47 @@
+{
+	"name": "@readymeet/web",
+	"version": "0.1.0",
+	"license": "BUSL-1.1",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "next dev -p 3000",
+		"build": "next build",
+		"start": "next start",
+		"typecheck": "tsc --noEmit",
+		"lint": "eslint app adapters application auth.ts composition domain middleware.ts ports presentation tests --ext .ts,.tsx,.js,.mjs",
+		"build:google-calendar": "node scripts/build-google-calendar.mjs --write",
+		"build:outlook": "node scripts/build-outlook.mjs --write",
+		"test": "node scripts/build-google-calendar.mjs --write && TSX_TSCONFIG_PATH=tsconfig.test.json node --import tsx --test \"tests/**/*.test.ts\" \"tests/**/*.test.tsx\" \"tests/**/*.test.mjs\""
+	},
+	"dependencies": {
+		"@dnd-kit/core": "^6.3.1",
+		"@dnd-kit/sortable": "^10.0.0",
+		"@dnd-kit/utilities": "^3.2.2",
+		"@livekit/components-react": "^2.0.0",
+		"@livekit/track-processors": "^0.7.2",
+		"@mediapipe/tasks-vision": "0.10.14",
+		"@readymeet/shared": "workspace:*",
+		"@tanstack/react-query": "^5.100.7",
+		"@tanstack/react-query-persist-client": "^5.100.7",
+		"ably": "^2.21.0",
+		"idb-keyval": "^6.2.2",
+		"livekit-client": "^2.15.3",
+		"metal-fx": "1.0.4",
+		"motion": "^12.23.12",
+		"next": "^15.5.28",
+		"next-auth": "^5.0.0-beta.32",
+		"react": "19.1.0",
+		"react-dom": "19.1.0",
+		"thinking-orbs": "^0.2.0",
+		"voice-glow": "^0.2.1",
+		"zod": "^3.24.3"
+	},
+	"devDependencies": {
+		"@happy-dom/global-registrator": "^18",
+		"@testing-library/react": "^16",
+		"@types/react": "^19.2.2",
+		"@types/react-dom": "^19.2.2",
+		"esbuild": "0.27.7"
+	}
+}

@@ -1,0 +1,40 @@
+{
+	"name": "@readymeet/db",
+	"version": "0.1.0",
+	"license": "BUSL-1.1",
+	"private": true,
+	"type": "module",
+	"main": "index.ts",
+	"types": "index.ts",
+	"exports": {
+		".": "./index.ts",
+		"./domain/*": "./domain/*.ts",
+		"./ports/*": "./ports/*.ts",
+		"./testing/memory": "./tests/memory-fixture.ts",
+		"./testing/content-key-preload": "./tests/content-key-preload.ts",
+		"./maintenance/content": "./adapters/secondary/postgres/content-cutover.ts"
+	},
+	"scripts": {
+		"build": "prisma generate && tsc -p tsconfig.build.json",
+		"typecheck": "prisma generate && tsc --noEmit",
+		"lint": "eslint adapters domain index.ts migrate.ts ports seed.ts tests --ext .ts",
+		"test": "prisma generate && node --import tsx --import ./tests/test-preload.ts --test --test-concurrency=1 \"tests/**/*.test.ts\"",
+		"test:integration": "pnpm test",
+		"generate": "sh -c 'if [ \"$READYMEET_PRISMA_GENERATED\" = 1 ]; then exit 0; fi; prisma generate'",
+		"migrate": "prisma generate && tsx migrate.ts",
+		"migration:new": "prisma generate && tsx migrate.ts new",
+		"seed": "prisma generate && tsx seed.ts"
+	},
+	"dependencies": {
+		"@prisma/adapter-pg": "7.10.1",
+		"@prisma/client": "7.10.1",
+		"@readymeet/shared": "workspace:*",
+		"dotenv": "^16.5.0",
+		"pg": "^8.16.0",
+		"prisma": "7.10.1",
+		"zod": "^3.24.3"
+	},
+	"devDependencies": {
+		"@types/pg": "^8.15.2"
+	}
+}

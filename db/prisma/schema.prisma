@@ -1,0 +1,2037 @@
+generator client {
+  provider        = "prisma-client"
+  output          = "../generated/prisma"
+  // relationJoins loads `include`/nested `select` relations with one LATERAL JOIN query instead
+  // of one query per relation level (the Drizzle code did single JOINs). It halves the queries
+  // of the meeting list and memory routes.
+  previewFeatures = ["partialIndexes", "relationJoins"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model acquisitionPayments {
+  transactionId String @map("transaction_id")      @id
+  userId        String? @map("user_id")     @db.Uuid
+  workspaceId   String? @map("workspace_id")     @db.Uuid
+  amountMinor   BigInt @map("amount_minor")
+  currency       String
+  paidAt        DateTime @map("paid_at")    @db.Timestamptz(6)
+  users          users?      @relation(fields: [userId], references: [id], onUpdate: NoAction)
+  workspaces     workspaces? @relation(fields: [workspaceId], references: [id], onUpdate: NoAction)
+  @@map("acquisition_payments")
+}
+
+model actionItems {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  meetingId String @map("meeting_id")   @db.Uuid
+  text       String
+  assignee   String?  @db.VarChar(120)
+  status     String   @default("open")
+  createdAt DateTime @map("created_at") @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @map("updated_at") @default(now()) @db.Timestamptz(6)
+  meetings   meetings @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("action_items")
+}
+
+model adminUserPlanChanges {
+  id                                                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  actorUserId                                       String? @map("actor_user_id")  @db.Uuid
+  targetUserId                                      String @map("target_user_id")   @db.Uuid
+  previousPlan                                       String @map("previous_plan")
+  nextPlan                                           String @map("next_plan")
+  source                                              String   @default("admin_manual") @db.VarChar(32)
+  createdAt                                          DateTime @map("created_at") @default(now()) @db.Timestamptz(6)
+  usersAdminUserPlanChangesActorUserIdTousers  users?   @relation("admin_user_plan_changes_actor_user_idTousers", fields: [actorUserId], references: [id], onUpdate: NoAction)
+  usersAdminUserPlanChangesTargetUserIdTousers users    @relation("admin_user_plan_changes_target_user_idTousers", fields: [targetUserId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("admin_user_plan_changes")
+}
+
+model agentConnectorSecrets {
+  id                 String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  agentConnectorId String @map("agent_connector_id")           @db.Uuid
+  secretRef         String @map("secret_ref")
+  encryptionVersion String @map("encryption_version")           @default("v1") @db.VarChar(32)
+  createdAt         DateTime @map("created_at")         @default(now()) @db.Timestamptz(6)
+  rotatedAt         DateTime? @map("rotated_at")        @db.Timestamptz(6)
+  agentConnectors   agentConnectors @relation(fields: [agentConnectorId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("agent_connector_secrets")
+}
+
+model agentConnectors {
+  id                                        String                                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                                   String @map("user_id")                                     @db.Uuid
+  agentProfileId                          String @map("agent_profile_id")                                     @db.Uuid
+  provider                                  String                                     @db.VarChar(64)
+  status                                    String                                     @default("disconnected") @db.VarChar(32)
+  scope                                     String                                     @default("private") @db.VarChar(32)
+  externalAccountEmail                    String? @map("external_account_email")                                    @db.VarChar(255)
+  createdAt                                DateTime @map("created_at")                                   @default(now()) @db.Timestamptz(6)
+  updatedAt                                DateTime @map("updated_at")                                   @default(now()) @db.Timestamptz(6)
+  providerAccountId                       String? @map("provider_account_id")
+  providerEmail                            String? @map("provider_email")                                    @db.VarChar(255)
+  providerTenantId                        String? @map("provider_tenant_id")                                    @db.VarChar(255)
+  scopes                                    Json                                       @default("[]")
+  syncStatus                               String @map("sync_status")                                     @default("idle") @db.VarChar(64)
+  accountKind                              String? @map("account_kind")                                    @db.VarChar(32)
+  connectedAt                              DateTime? @map("connected_at")                                  @db.Timestamptz(6)
+  lastSyncedAt                            DateTime? @map("last_synced_at")                                  @db.Timestamptz(6)
+  disconnectedAt                           DateTime? @map("disconnected_at")                                  @db.Timestamptz(6)
+  deletedAt                                DateTime? @map("deleted_at")                                  @db.Timestamptz(6)
+  nullAccountKey                          String? @map("null_account_key")                                    @unique(map: "agent_connectors_null_account_key_uidx") @default(dbgenerated("\nCASE\n    WHEN ((provider_account_id IS NULL) AND (deleted_at IS NULL)) THEN (((user_id)::text || ':'::text) || (provider)::text)\n    ELSE NULL::text\nEND"))
+  activeAccountKey                        String? @map("active_account_key")                                    @unique(map: "agent_connectors_active_account_key_uidx") @default(dbgenerated("\nCASE\n    WHEN ((provider_account_id IS NOT NULL) AND (deleted_at IS NULL)) THEN (((((user_id)::text || ':'::text) || (provider)::text) || ':'::text) || provider_account_id)\n    ELSE NULL::text\nEND"))
+  agentConnectorSecrets                   agentConnectorSecrets[]
+  agentProfiles                            agentProfiles                             @relation(fields: [agentProfileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                                     users                                      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  agentToolInvocations                    agentToolInvocations[]
+  calendarEventPreps                      calendarEventPreps[]
+  calendarReadyLinks                      calendarReadyLinks[]
+  calendarSyncSubscriptions               calendarSyncSubscriptions[]
+  linearTaskReviewRuns                   linearTaskReviewRuns[]
+  pendingGoogleAddonCalendarCredentials pendingGoogleAddonCalendarCredentials?
+  @@map("agent_connectors")
+}
+
+model agentMemories {
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String @map("user_id")         @db.Uuid
+  agentProfileId String @map("agent_profile_id")         @db.Uuid
+  memoryType      String @map("memory_type")         @db.VarChar(64)
+  content          String
+  source           String         @default("manual") @db.VarChar(64)
+  createdAt       DateTime @map("created_at")       @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime @map("updated_at")       @default(now()) @db.Timestamptz(6)
+  agentProfiles   agentProfiles @relation(fields: [agentProfileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users            users          @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("agent_memories")
+}
+
+model agentProfiles {
+  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                 String @map("user_id")                    @db.Uuid
+  name                    String                    @db.VarChar(120)
+  displayName            String @map("display_name")                    @db.VarChar(120)
+  systemPrompt           String? @map("system_prompt")
+  voiceProvider          String @map("voice_provider")                    @default("openai") @db.VarChar(64)
+  voiceId                String? @map("voice_id")                   @db.VarChar(120)
+  llmModel               String? @map("llm_model")                   @db.VarChar(120)
+  isDefault              Boolean @map("is_default")                   @default(false)
+  createdAt              DateTime @map("created_at")                  @default(now()) @db.Timestamptz(6)
+  updatedAt              DateTime @map("updated_at")                  @default(now()) @db.Timestamptz(6)
+  defaultProfileKey     String? @map("default_profile_key")                   @unique(map: "agent_profiles_default_profile_key_uidx") @default(dbgenerated("\nCASE\n    WHEN is_default THEN (user_id)::text\n    ELSE NULL::text\nEND"))
+  agentConnectors        agentConnectors[]
+  agentMemories          agentMemories[]
+  users                   users                     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  agentToolInvocations  agentToolInvocations[]
+  agentToolPolicies     agentToolPolicies[]
+  meetingResearchRuns   meetingResearchRuns[]
+  meetingTurns           meetingTurns[]
+  transcriptSegments     transcriptSegments[]
+  voiceWebResearchRuns voiceWebResearchRuns[]
+  @@map("agent_profiles")
+}
+
+model agentToolInvocations {
+  id                                                             String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  meetingId                                                     String @map("meeting_id")            @db.Uuid
+  utteranceId                                                   String @map("utterance_id")            @db.VarChar(160)
+  userId                                                        String @map("user_id")            @db.Uuid
+  agentProfileId                                               String @map("agent_profile_id")            @db.Uuid
+  connectorId                                                   String? @map("connector_id")           @db.Uuid
+  provider                                                       String            @db.VarChar(64)
+  toolName                                                      String @map("tool_name")            @db.VarChar(120)
+  toolVersion                                                   String @map("tool_version")            @db.VarChar(32)
+  policyVersion                                                 String @map("policy_version")            @db.VarChar(64)
+  sideEffectClass                                              String @map("side_effect_class")            @db.VarChar(32)
+  status                                                         String            @db.VarChar(32)
+  confirmationStatus                                            String @map("confirmation_status")            @default("not_required") @db.VarChar(32)
+  confirmationActorUserId                                     String? @map("confirmation_actor_user_id")           @db.Uuid
+  idempotencyKey                                                String? @map("idempotency_key")           @unique(map: "agent_tool_invocations_idempotency_uidx", where: raw("(idempotency_key IS NOT NULL)")) @db.VarChar(180)
+  redactedArgs                                                  Json @map("redacted_args")              @default(dbgenerated())
+  redactedResultSummary                                        Json @map("redacted_result_summary")              @default(dbgenerated())
+  errorCode                                                     String? @map("error_code")           @db.VarChar(120)
+  durationMs                                                    Int? @map("duration_ms")
+  createdAt                                                     DateTime @map("created_at")          @default(now()) @db.Timestamptz(6)
+  confirmedAt                                                   DateTime? @map("confirmed_at")         @db.Timestamptz(6)
+  executedAt                                                    DateTime? @map("executed_at")         @db.Timestamptz(6)
+  agentProfiles                                                 agentProfiles    @relation(fields: [agentProfileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  usersAgentToolInvocationsConfirmationActorUserIdTousers users?            @relation("agent_tool_invocations_confirmation_actor_user_idTousers", fields: [confirmationActorUserId], references: [id], onUpdate: NoAction)
+  agentConnectors                                               agentConnectors? @relation(fields: [connectorId], references: [id], onUpdate: NoAction)
+  meetings                                                       meetings          @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  usersAgentToolInvocationsUserIdTousers                    users             @relation("agent_tool_invocations_user_idTousers", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("agent_tool_invocations")
+}
+
+model agentToolPolicies {
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  agentProfileId String @map("agent_profile_id")         @db.Uuid
+  toolName        String @map("tool_name")         @db.VarChar(120)
+  mode             String         @default("private") @db.VarChar(32)
+  config           Json           @default("{}")
+  createdAt       DateTime @map("created_at")       @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime @map("updated_at")       @default(now()) @db.Timestamptz(6)
+  agentProfiles   agentProfiles @relation(fields: [agentProfileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([agentProfileId, toolName], map: "agent_tool_policies_profile_tool_uidx")
+  @@map("agent_tool_policies")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model aiCreditPricingConfig {
+  id                         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  pricePerCreditMicroUsd Int @map("price_per_credit_micro_usd")      @default(100000)
+  targetMarkupMultiplier   Decimal @map("target_markup_multiplier")  @default(5) @db.Decimal(8, 4)
+  includedActionTypes      Json @map("included_action_types")     @default("[]")
+  actionMinimumCredits     Json @map("action_minimum_credits")     @default("{}")
+  metadata                   Json     @default("{}")
+  createdAt                 DateTime @map("created_at") @default(now()) @db.Timestamptz(6)
+  updatedAt                 DateTime @map("updated_at") @default(now()) @db.Timestamptz(6)
+  @@map("ai_credit_pricing_config")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model aiCreditReservations {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId String @map("workspace_id") @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  plan String
+  maximumCostMicroUsd Int @map("maximum_cost_micro_usd")
+  metadata Json @default("{}")
+  reservedCredits Int @map("reserved_credits")
+  allowanceCredits Int @map("allowance_credits")
+  poolDebits Json @map("pool_debits") @default("[]")
+  allowanceWindowStart DateTime? @map("allowance_window_start") @db.Timestamptz(6)
+  included Boolean @default(false)
+  status String @default("reserved")
+  createdAt DateTime @map("created_at") @default(now()) @db.Timestamptz(6)
+  settledAt DateTime? @map("settled_at") @db.Timestamptz(6)
+  workspaces workspaces @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users users @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  aiCreditUsageEvents aiCreditUsageEvents?
+  @@index([workspaceId, userId, allowanceWindowStart], map: "ai_credit_reservations_reserved_allowance_idx", where: raw("(status = 'reserved'::text)"))
+  @@map("ai_credit_reservations")
+}
+
+model aiCreditUsageEvents {
+  reservationId String? @map("reservation_id") @unique(map: "ai_credit_usage_reservation_unique") @db.Uuid
+  aiCreditReservations aiCreditReservations? @relation(fields: [reservationId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  id                         String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                    String @map("user_id")                    @db.Uuid
+  meetingId                 String? @map("meeting_id")                   @db.Uuid
+  jobId                     String? @map("job_id")                   @db.Uuid
+  workflowRunId            String? @map("workflow_run_id")                   @db.Uuid
+  actionType                String @map("action_type")
+  actionLabel               String @map("action_label")
+  provider                   String?
+  model                      String?
+  inputTokens               Int @map("input_tokens")                       @default(0)
+  outputTokens              Int @map("output_tokens")                       @default(0)
+  cachedInputTokens        Int @map("cached_input_tokens")                       @default(0)
+  toolCallCount            Int @map("tool_call_count")                       @default(0)
+  actualCostMicroUsd      Int @map("actual_cost_micro_usd")                       @default(0)
+  pricePerCreditMicroUsd Int @map("price_per_credit_micro_usd")                       @default(100000)
+  markupMultiplier          Decimal @map("markup_multiplier")                   @default(5) @db.Decimal(8, 4)
+  minimumCredits            Int @map("minimum_credits")                       @default(1)
+  included                   Boolean                   @default(false)
+  creditsCharged            Int @map("credits_charged")                       @default(0)
+  revenueMicroUsd          Int @map("revenue_micro_usd")                       @default(0)
+  profitMicroUsd           Int @map("profit_micro_usd")                       @default(0)
+  metadata                   Json                      @default("{}")
+  idempotencyKey            String? @map("idempotency_key")                   @unique(map: "ai_credit_usage_events_idempotency_key_uidx", where: raw("(idempotency_key IS NOT NULL)"))
+  createdAt                 DateTime @map("created_at")                  @default(now()) @db.Timestamptz(6)
+  workspaceId               String? @map("workspace_id")                   @db.Uuid
+  requireAvailableCredits  Boolean @map("require_available_credits")                   @default(false)
+  aiWorkflowExecutions     aiWorkflowExecutions?   @relation(fields: [jobId], references: [id], onUpdate: NoAction)
+  meetings                   meetings?                 @relation(fields: [meetingId], references: [id], onUpdate: NoAction)
+  users                      users                     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  capabilityWorkflowRuns   capabilityWorkflowRuns? @relation(fields: [workflowRunId], references: [id], onUpdate: NoAction)
+  workspaces                 workspaces?               @relation(fields: [workspaceId], references: [id], onUpdate: NoAction)
+
+  @@index([userId, workspaceId, createdAt], map: "ai_credit_usage_events_user_workspace_created_idx")
+  @@map("ai_credit_usage_events")
+}
+
+model aiWorkflowExecutions {
+  id                     String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  meetingId             String @map("meeting_id")                   @db.Uuid
+  extractionId          String? @map("extraction_id")                  @db.Uuid
+  type                   String
+  scopeKey              String @map("scope_key")                   @default("default") @db.VarChar(160)
+  status                 String                   @default("running")
+  phase                  String                   @default("running") @db.VarChar(64)
+  payload                Json                     @default(dbgenerated())
+  result                 Json                     @default(dbgenerated())
+  error                  String?
+  startedAt             DateTime @map("started_at")                 @default(now()) @db.Timestamptz(6)
+  completedAt           DateTime? @map("completed_at")                @db.Timestamptz(6)
+  createdAt             DateTime @map("created_at")                 @default(now()) @db.Timestamptz(6)
+  updatedAt             DateTime @map("updated_at")                 @default(now()) @db.Timestamptz(6)
+  previewKey            String? @map("preview_key")                  @unique(map: "ai_workflow_executions_preview_key_uidx") @default(dbgenerated("\nCASE\n    WHEN ((type = 'resolve_meeting_title'::text) AND ((scope_key)::text = 'guest-preview-v1'::text) AND (status = ANY (ARRAY['running'::text, 'queued'::text, 'completed'::text]))) THEN (meeting_id)::text\n    ELSE NULL::text\nEND"))
+  aiCreditUsageEvents aiCreditUsageEvents[]
+  meetingExtractions    meetingExtractions?     @relation(fields: [extractionId], references: [id], onUpdate: NoAction)
+  meetings               meetings                 @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  usageEvents           usageEvents[]
+  @@map("ai_workflow_executions")
+}
+
+model ashbyCandidateEmailLookups {
+  workspaceId String @map("workspace_id")     @db.Uuid
+  email        String
+  candidateId String? @map("candidate_id")
+  profileUrl  String? @map("profile_url")
+  checkedAt   DateTime @map("checked_at")   @default(now()) @db.Timestamptz(6)
+  workspaces   workspaces @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([workspaceId, email])
+  @@map("ashby_candidate_email_lookups")
+}
+
+model ashbyMeetingAnalyses {
+  meetingId String @map("meeting_id")   @db.Uuid
+  inputHash String @map("input_hash")
+  result     Json
+  createdAt DateTime @map("created_at") @default(now()) @db.Timestamptz(6)
+  meetings   meetings @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([meetingId, inputHash])
+  @@map("ashby_meeting_analyses")
+}
+
+model ashbyMemberConnections {
+  workspaceId String @map("workspace_id")     @db.Uuid
+  userId      String @map("user_id")     @db.Uuid
+  connectedAt DateTime @map("connected_at")   @default(now()) @db.Timestamptz(6)
+  users        users      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  workspaces   workspaces @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([workspaceId, userId])
+  @@map("ashby_member_connections")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model ashbyReviewActions {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId String @map("workspace_id")     @db.Uuid
+  meetingId   String @map("meeting_id")     @db.Uuid
+  kind         String
+  targetId    String @map("target_id")
+  status       String     @default("unknown")
+  result       Json?
+  createdAt   DateTime @map("created_at")   @default(now()) @db.Timestamptz(6)
+  meetings     meetings   @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  workspaces   workspaces @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([workspaceId, meetingId, kind, targetId])
+  @@map("ashby_review_actions")
+}
+
+model ashbyReviews {
+  id           String     @id @db.Uuid
+  meetingId   String @map("meeting_id")     @db.Uuid
+  userId      String @map("user_id")     @db.Uuid
+  workspaceId String @map("workspace_id")     @db.Uuid
+  revision     Int        @default(0)
+  review       Json
+  command      Json?
+  updatedAt   DateTime @map("updated_at")   @default(now()) @db.Timestamptz(6)
+  meetings     meetings   @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users        users      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  workspaces   workspaces @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([meetingId, userId, workspaceId])
+  @@map("ashby_reviews")
+}
+
+model assignedTaskPlacements {
+  sourceType                                              String @map("source_type")
+  sourceTaskId                                           String @map("source_task_id")                  @db.Uuid
+  workspaceId                                             String @map("workspace_id")                  @db.Uuid
+  assigneeUserId                                         String @map("assignee_user_id")                  @db.Uuid
+  sectionId                                               String @map("section_id")                  @db.Uuid
+  position                                                 Int                     @default(0)
+  revision                                                 Int                     @default(1)
+  updatedByUserId                                       String? @map("updated_by_user_id")                 @db.Uuid
+  updatedAt                                               DateTime @map("updated_at")                @default(now()) @db.Timestamptz(6)
+  usersAssignedTaskPlacementsAssigneeUserIdTousers   users                   @relation("assigned_task_placements_assignee_user_idTousers", fields: [assigneeUserId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  workspaceTaskSections                                  workspaceTaskSections @relation(fields: [sectionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  usersAssignedTaskPlacementsUpdatedByUserIdTousers users?                  @relation("assigned_task_placements_updated_by_user_idTousers", fields: [updatedByUserId], references: [id], onUpdate: NoAction)
+  workspaces                                               workspaces              @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([sourceType, sourceTaskId, workspaceId, assigneeUserId])
+  @@map("assigned_task_placements")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model billingCheckoutAttempts {
+  id                         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subjectType               String @map("subject_type")    @db.VarChar(16)
+  subjectId                 String @map("subject_id")    @db.Uuid
+  checkoutKind              String @map("checkout_kind")    @db.VarChar(16)
+  requestKey                String @map("request_key")    @unique @db.VarChar(255)
+  requestParams             Json @map("request_params")      @default("{}")
+  stripeCheckoutSessionId String? @map("stripe_checkout_session_id")   @unique @db.VarChar(255)
+  checkoutUrl               String? @map("checkout_url")
+  expiresAt                 DateTime? @map("expires_at") @db.Timestamptz(6)
+  status                     String    @default("pending") @db.VarChar(16)
+  lastError                 String? @map("last_error")
+  createdAt                 DateTime @map("created_at")  @default(now()) @db.Timestamptz(6)
+  updatedAt                 DateTime @map("updated_at")  @default(now()) @db.Timestamptz(6)
+  pendingCheckoutKey       String? @map("pending_checkout_key")   @unique(map: "billing_checkout_attempts_pending_checkout_key_uidx") @default(dbgenerated("\nCASE\n    WHEN ((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('processing'::character varying)::text])) THEN (((((subject_type)::text || ':'::text) || (subject_id)::text) || ':'::text) || (checkout_kind)::text)\n    ELSE NULL::text\nEND"))
+  @@map("billing_checkout_attempts")
+}
+
+model billingCustomers {
+  userId            String @map("user_id")   @id @db.Uuid
+  stripeCustomerId String @map("stripe_customer_id")   @unique @db.VarChar(255)
+  createdAt         DateTime @map("created_at") @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime @map("updated_at") @default(now()) @db.Timestamptz(6)
+  users              users    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("billing_customers")
+}
+
+model billingSubscriptions {
+  id                          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                     String @map("user_id")      @unique(map: "billing_subscriptions_running_user_uidx", where: raw("((workspace_id IS NULL) AND ((status)::text = ANY (ARRAY[('active'::character varying)::text, ('trialing'::character varying)::text])))")) @db.Uuid
+  stripeSubscriptionId      String @map("stripe_subscription_id")      @unique @db.VarChar(255)
+  stripePriceId             String @map("stripe_price_id")      @db.VarChar(255)
+  status                      String      @db.VarChar(64)
+  planInterval               String @map("plan_interval")      @db.VarChar(16)
+  includedCreditsPerPeriod Int @map("included_credits_per_period")         @default(0)
+  currentPeriodStart        DateTime? @map("current_period_start")   @db.Timestamptz(6)
+  currentPeriodEnd          DateTime? @map("current_period_end")   @db.Timestamptz(6)
+  cancelAtPeriodEnd        Boolean @map("cancel_at_period_end")     @default(false)
+  metadata                    Json        @default("{}")
+  createdAt                  DateTime @map("created_at")    @default(now()) @db.Timestamptz(6)
+  updatedAt                  DateTime @map("updated_at")    @default(now()) @db.Timestamptz(6)
+  workspaceId                String? @map("workspace_id")     @unique(map: "billing_subscriptions_running_workspace_uidx", where: raw("((workspace_id IS NOT NULL) AND ((status)::text = ANY (ARRAY[('active'::character varying)::text, ('trialing'::character varying)::text])))")) @db.Uuid
+  seatQuantity               Int @map("seat_quantity")         @default(1)
+  statusChangedAt           DateTime @map("status_changed_at")    @default(now()) @db.Timestamptz(6)
+  users                       users       @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  workspaces                  workspaces? @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("billing_subscriptions")
+}
+
+model calendarEventPreps {
+  id                     String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String @map("user_id")            @db.Uuid
+  calendarEventId      String @map("calendar_event_id")
+  eventFingerprint      String @map("event_fingerprint")
+  status                 String            @default("pending") @db.VarChar(32)
+  taskgroupId           String? @map("taskgroup_id")           @db.VarChar(160)
+  runRefs               Json @map("run_refs")              @default(dbgenerated())
+  eventSnapshot         Json @map("event_snapshot")              @default(dbgenerated())
+  result                 Json              @default(dbgenerated())
+  error                  Json?
+  createdAt             DateTime @map("created_at")          @default(now()) @db.Timestamptz(6)
+  updatedAt             DateTime @map("updated_at")          @default(now()) @db.Timestamptz(6)
+  calendarAccountId    String? @map("calendar_account_id")           @db.Uuid
+  legacyFingerprintKey String? @map("legacy_fingerprint_key")           @unique(map: "calendar_event_preps_legacy_fingerprint_key_uidx") @default(dbgenerated("\nCASE\n    WHEN (calendar_account_id IS NULL) THEN (((((user_id)::text || ':'::text) || calendar_event_id) || ':'::text) || event_fingerprint)\n    ELSE NULL::text\nEND"))
+  agentConnectors       agentConnectors? @relation(fields: [calendarAccountId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                  users             @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([userId, calendarEventId, eventFingerprint, calendarAccountId], map: "calendar_event_preps_user_event_fingerprint_account_uidx", where: raw("(calendar_account_id IS NOT NULL)"))
+  @@map("calendar_event_preps")
+}
+
+model calendarReadyLinks {
+  id                  String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId             String @map("user_id")           @db.Uuid
+  calendarAccountId String @map("calendar_account_id")           @db.Uuid
+  provider            String           @db.VarChar(64)
+  calendarId         String @map("calendar_id")
+  providerEventId   String @map("provider_event_id")
+  meetingLinkId     String @map("meeting_link_id")           @db.Uuid
+  createdAt          DateTime @map("created_at")         @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime @map("updated_at")         @default(now()) @db.Timestamptz(6)
+  agentConnectors    agentConnectors @relation(fields: [calendarAccountId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  meetingLinks       meetingLinks    @relation(fields: [meetingLinkId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users               users            @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([userId, calendarAccountId, provider, calendarId, providerEventId])
+  @@map("calendar_ready_links")
+}
+
+model calendarSyncSubscriptions {
+  id                  String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId             String @map("user_id")           @db.Uuid
+  agentConnectorId  String @map("agent_connector_id")           @db.Uuid
+  provider            String           @db.VarChar(64)
+  calendarId         String @map("calendar_id")           @default("primary") @db.VarChar(255)
+  channelId          String @map("channel_id")           @db.VarChar(64)
+  resourceId         String? @map("resource_id")          @db.VarChar(255)
+  resourceUri        String? @map("resource_uri")
+  expirationAt       DateTime? @map("expiration_at")        @db.Timestamptz(6)
+  status              String           @default("active") @db.VarChar(32)
+  lastMessageNumber String? @map("last_message_number")
+  createdAt          DateTime @map("created_at")         @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime @map("updated_at")         @default(now()) @db.Timestamptz(6)
+  webhookAddress     String? @map("webhook_address")
+  activeCalendarKey String? @map("active_calendar_key")          @unique(map: "calendar_sync_subscriptions_active_calendar_key_uidx") @default(dbgenerated("\nCASE\n    WHEN ((status)::text = 'active'::text) THEN (((agent_connector_id)::text || ':'::text) || (calendar_id)::text)\n    ELSE NULL::text\nEND"))
+  agentConnectors    agentConnectors @relation(fields: [agentConnectorId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users               users            @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("calendar_sync_subscriptions")
+}
+
+model capabilityCatalog {
+  id                                 String                               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key                                String                               @unique(map: "capability_catalog_key_uidx") @db.VarChar(160)
+  name                               String                               @db.VarChar(255)
+  description                        String
+  category                           String
+  applicableMeetingTypes           Json @map("applicable_meeting_types")                                 @default("[]")
+  requiredSignals                   Json @map("required_signals")                                 @default("[]")
+  exclusionSignals                  Json @map("exclusion_signals")                                 @default("[]")
+  exampleTriggers                   Json @map("example_triggers")                                 @default("[]")
+  sideEffectScope                  String @map("side_effect_scope")
+  defaultPriority                   Int @map("default_priority")                                  @default(50)
+  isActive                          Boolean @map("is_active")                              @default(true)
+  metadata                           Json                                 @default("{}")
+  createdAt                         DateTime @map("created_at")                             @default(now()) @db.Timestamptz(6)
+  updatedAt                         DateTime @map("updated_at")                             @default(now()) @db.Timestamptz(6)
+  capabilityWorkflowRuns           capabilityWorkflowRuns[]
+  meetingCapabilityRecommendations meetingCapabilityRecommendations[]
+  userCapabilityPreferences        userCapabilityPreferences[]
+  @@map("capability_catalog")
+}
+
+model capabilityWorkflowMessages {
+  id                       String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workflowRunId          String @map("workflow_run_id")                   @db.Uuid
+  role                     String                   @db.VarChar(32)
+  content                  String
+  metadata                 Json                     @default(dbgenerated())
+  createdAt               DateTime @map("created_at")                 @default(now()) @db.Timestamptz(6)
+  capabilityWorkflowRuns capabilityWorkflowRuns @relation(fields: [workflowRunId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("capability_workflow_messages")
+}
+
+model capabilityWorkflowRuns {
+  id                                 String                             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  meetingId                         String @map("meeting_id")                             @db.Uuid
+  recommendationId                  String @map("recommendation_id")                             @unique(map: "capability_workflow_runs_recommendation_uidx") @db.Uuid
+  capabilityKey                     String @map("capability_key")                             @db.VarChar(160)
+  status                             String                             @default("pending") @db.VarChar(32)
+  phase                              String                             @default("gathering_context") @db.VarChar(64)
+  context                            Json                               @default(dbgenerated())
+  plan                               Json                               @default(dbgenerated())
+  draft                              Json                               @default(dbgenerated())
+  result                             Json                               @default(dbgenerated())
+  error                              String?
+  createdAt                         DateTime @map("created_at")                           @default(now()) @db.Timestamptz(6)
+  updatedAt                         DateTime @map("updated_at")                           @default(now()) @db.Timestamptz(6)
+  completedAt                       DateTime? @map("completed_at")                          @db.Timestamptz(6)
+  aiCreditUsageEvents             aiCreditUsageEvents[]
+  capabilityWorkflowMessages       capabilityWorkflowMessages[]
+  capabilityCatalog                 capabilityCatalog                 @relation(fields: [capabilityKey], references: [key], onDelete: NoAction, onUpdate: NoAction)
+  meetings                           meetings                           @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  meetingCapabilityRecommendations meetingCapabilityRecommendations @relation(fields: [recommendationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  usageEvents                       usageEvents[]
+  @@map("capability_workflow_runs")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model creditGrants {
+  id                String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String? @map("user_id")     @db.Uuid
+  source            String
+  credits           Int
+  creditsRemaining Int @map("credits_remaining")
+  expiresAt        DateTime? @map("expires_at")   @db.Timestamptz(6)
+  stripeReference  String? @map("stripe_reference")     @unique(map: "credit_grants_stripe_reference_uidx", where: raw("(stripe_reference IS NOT NULL)"))
+  metadata          Json        @default("{}")
+  createdAt        DateTime @map("created_at")    @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime @map("updated_at")    @default(now()) @db.Timestamptz(6)
+  workspaceId      String? @map("workspace_id")     @db.Uuid
+  users             users?      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  workspaces        workspaces? @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("credit_grants")
+}
+
+model dataDeletionRequests {
+  id                         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                    String? @map("user_id")   @db.Uuid
+  targetKind                String @map("target_kind")    @db.VarChar(64)
+  targetProvider            String? @map("target_provider")   @db.VarChar(64)
+  targetAccountId          String? @map("target_account_id")   @db.Uuid
+  status                     String    @default("pending") @db.VarChar(32)
+  providerRevocationStatus Json @map("provider_revocation_status")      @default("{}")
+  error                      Json?
+  requestedAt               DateTime @map("requested_at")  @default(now()) @db.Timestamptz(6)
+  calendarDeletedAt        DateTime? @map("calendar_deleted_at") @db.Timestamptz(6)
+  attachmentsDeletedAt     DateTime? @map("attachments_deleted_at") @db.Timestamptz(6)
+  completedAt               DateTime? @map("completed_at") @db.Timestamptz(6)
+  updatedAt                 DateTime @map("updated_at")  @default(now()) @db.Timestamptz(6)
+  users                      users?    @relation(fields: [userId], references: [id], onUpdate: NoAction)
+  @@map("data_deletion_requests")
+}
+
+model googleAddonConferences {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String @map("user_id")        @db.Uuid
+  idempotencyKey String @map("idempotency_key")        @db.VarChar(64)
+  meetingLinkId String @map("meeting_link_id")        @db.Uuid
+  createdAt      DateTime @map("created_at")      @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime @map("updated_at")      @default(now()) @db.Timestamptz(6)
+  meetingLinks   meetingLinks @relation(fields: [meetingLinkId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users           users         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([userId, idempotencyKey], map: "google_addon_conferences_user_key_uidx")
+  @@map("google_addon_conferences")
+}
+
+model guestAuthSessions {
+  id                                                 String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                                            String @map("user_id")                @db.Uuid
+  meetingLinkId                                    String @map("meeting_link_id")                @db.Uuid
+  meetingId                                         String? @map("meeting_id")               @db.Uuid
+  joinRequestId                                    String @map("join_request_id")                @db.Uuid
+  secretHash                                        String @map("secret_hash")
+  expiresAt                                         DateTime @map("expires_at")              @db.Timestamptz(6)
+  linkedToUserId                                  String? @map("linked_to_user_id")               @db.Uuid
+  revokedAt                                         DateTime? @map("revoked_at")             @db.Timestamptz(6)
+  createdAt                                         DateTime @map("created_at")              @default(now()) @db.Timestamptz(6)
+  updatedAt                                         DateTime @map("updated_at")              @default(now()) @db.Timestamptz(6)
+  meetingJoinRequests                              meetingJoinRequests @relation(fields: [joinRequestId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  usersGuestAuthSessionsLinkedToUserIdTousers users?                @relation("guest_auth_sessions_linked_to_user_idTousers", fields: [linkedToUserId], references: [id], onUpdate: NoAction)
+  meetings                                           meetings?             @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  meetingLinks                                      meetingLinks         @relation(fields: [meetingLinkId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  usersGuestAuthSessionsUserIdTousers           users                 @relation("guest_auth_sessions_user_idTousers", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("guest_auth_sessions")
+}
+
+model guestBrowserIdentities {
+  id                     String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tokenHash             String @map("token_hash")                @unique
+  noticeVersion         String @map("notice_version")
+  purpose                String
+  consentedAt           DateTime @map("consented_at")              @default(now()) @db.Timestamptz(6)
+  expiresAt             DateTime @map("expires_at")              @db.Timestamptz(6)
+  revokedAt             DateTime? @map("revoked_at")             @db.Timestamptz(6)
+  linkedAccountUserId String? @map("linked_account_user_id")               @db.Uuid
+  users                  users?                @relation(fields: [linkedAccountUserId], references: [id], onUpdate: NoAction)
+  guestBrowserUsers    guestBrowserUsers[]
+  @@map("guest_browser_identities")
+}
+
+model guestBrowserUsers {
+  guestUserId            String @map("guest_user_id")                   @id @db.Uuid
+  browserId               String @map("browser_id")                   @db.Uuid
+  associatedAt            DateTime @map("associated_at")                 @default(now()) @db.Timestamptz(6)
+  guestBrowserIdentities guestBrowserIdentities @relation(fields: [browserId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                    users                    @relation(fields: [guestUserId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("guest_browser_users")
+}
+
+model guestMemoryAccountLinks {
+  guestUserId                                           String @map("guest_user_id") @id @db.Uuid
+  accountUserId                                         String @map("account_user_id") @db.Uuid
+  usersGuestMemoryAccountLinksAccountUserIdTousers users  @relation("guest_memory_account_links_account_user_idTousers", fields: [accountUserId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  usersGuestMemoryAccountLinksGuestUserIdTousers   users  @relation("guest_memory_account_links_guest_user_idTousers", fields: [guestUserId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("guest_memory_account_links")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model linearTaskReviewItems {
+  id                        String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  runId                    String @map("run_id")                  @db.Uuid
+  position                  Int
+  sourceTaskIds           Json @map("source_task_ids")                    @default("[]")
+  decision                  String                  @db.VarChar(24)
+  confidence                Int
+  reasoning                 String
+  title                     String
+  description               String?
+  teamId                   String? @map("team_id")
+  teamName                 String? @map("team_name")
+  included                  Boolean                 @default(true)
+  syncStatus               String @map("sync_status")                  @default("pending") @db.VarChar(24)
+  syncError                String? @map("sync_error")
+  externalIssueId         String? @map("external_issue_id")
+  externalIssueIdentifier String? @map("external_issue_identifier")
+  externalIssueTitle      String? @map("external_issue_title")
+  externalIssueUrl        String? @map("external_issue_url")
+  createdAt                DateTime @map("created_at")                @default(now()) @db.Timestamptz(6)
+  updatedAt                DateTime @map("updated_at")                @default(now()) @db.Timestamptz(6)
+  issueDraft               Json? @map("issue_draft")
+  duplicateIssues          Json @map("duplicate_issues")                    @default(dbgenerated())
+  targetAction             String @map("target_action")                  @default("create") @db.VarChar(32)
+  targetIssue              Json? @map("target_issue")
+  relationId               String? @map("relation_id")
+  meetingContextSyncedAt DateTime? @map("meeting_context_synced_at")               @db.Timestamptz(6)
+  linearTaskReviewRuns   linearTaskReviewRuns @relation(fields: [runId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([runId, position], map: "linear_task_review_items_run_position_uidx")
+  @@map("linear_task_review_items")
+}
+
+model linearTaskReviewRuns {
+  id                       String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  meetingId               String @map("meeting_id")                     @db.Uuid
+  taskListId             String @map("task_list_id")                     @db.Uuid
+  userId                  String @map("user_id")                     @db.Uuid
+  connectorId             String? @map("connector_id")                    @db.Uuid
+  status                   String                     @default("queued") @db.VarChar(32)
+  phase                    String                     @default("queued") @db.VarChar(64)
+  inputHash               String @map("input_hash")                     @db.VarChar(64)
+  model                    String?                    @db.VarChar(160)
+  promptVersion           String? @map("prompt_version")                    @db.VarChar(160)
+  error                    String?
+  startedAt               DateTime? @map("started_at")                  @db.Timestamptz(6)
+  completedAt             DateTime? @map("completed_at")                  @db.Timestamptz(6)
+  createdAt               DateTime @map("created_at")                   @default(now()) @db.Timestamptz(6)
+  updatedAt               DateTime @map("updated_at")                   @default(now()) @db.Timestamptz(6)
+  inputSnapshot           Json @map("input_snapshot")                       @default(dbgenerated())
+  linearTaskReviewItems linearTaskReviewItems[]
+  agentConnectors         agentConnectors?          @relation(fields: [connectorId], references: [id], onUpdate: NoAction)
+  meetings                 meetings                   @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  meetingTaskLists       meetingTaskLists         @relation(fields: [taskListId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                    users                      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([meetingId, inputHash], map: "linear_task_review_runs_meeting_input_uidx")
+  @@map("linear_task_review_runs")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model meetingAmbientContextCursors {
+  meetingId                String @map("meeting_id")               @id @db.Uuid
+  lastProcessedSegmentId String? @map("last_processed_segment_id")              @db.Uuid
+  updatedAt                DateTime @map("updated_at")             @default(now()) @db.Timestamptz(6)
+  processedThrough         DateTime? @map("processed_through")            @db.Timestamptz(6)
+  detectionState           String @map("detection_state")               @default("idle") @db.VarChar(16)
+  detectionRequested       Boolean @map("detection_requested")              @default(false)
+  transcriptSegments       transcriptSegments? @relation(fields: [lastProcessedSegmentId], references: [id], onUpdate: NoAction)
+  meetings                  meetings             @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("meeting_ambient_context_cursors")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model meetingAmbientContextItems {
+  canonicalKeyFingerprint String @map("canonical_key_fingerprint") @default(dbgenerated())
+  errorFingerprint String? @map("error_fingerprint")
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  meetingId            String @map("meeting_id")    @db.Uuid
+  entityKind           String @map("entity_kind")    @db.VarChar(24)
+  canonicalKey         String @map("canonical_key")
+  displayName          String @map("display_name")
+  qualifier             String?
+  imageStatus          String @map("image_status")    @default("pending") @db.VarChar(24)
+  imageStorageKey     String? @map("image_storage_key")
+  imageMimeType       String? @map("image_mime_type")   @db.VarChar(96)
+  professionalTitle    String? @map("professional_title")
+  companyName          String? @map("company_name")
+  headquarters          String?
+  officialWebsite      String? @map("official_website")
+  profileUrl           String? @map("profile_url")
+  summary               String?
+  facts                 Json      @default(dbgenerated())
+  citations             Json      @default(dbgenerated())
+  facets                Json      @default(dbgenerated())
+  status                String    @default("pending") @db.VarChar(24)
+  mentionCount         Int @map("mention_count")       @default(1)
+  error                 String?
+  firstMentionedAt    DateTime @map("first_mentioned_at")  @default(now()) @db.Timestamptz(6)
+  lastMentionedAt     DateTime @map("last_mentioned_at")  @default(now()) @db.Timestamptz(6)
+  researchStartedAt   DateTime? @map("research_started_at") @db.Timestamptz(6)
+  researchCompletedAt DateTime? @map("research_completed_at") @db.Timestamptz(6)
+  createdAt            DateTime @map("created_at")  @default(now()) @db.Timestamptz(6)
+  updatedAt            DateTime @map("updated_at")  @default(now()) @db.Timestamptz(6)
+  mentionSegmentIds   Json? @map("mention_segment_ids")
+  meetings              meetings  @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([meetingId, canonicalKeyFingerprint], map: "meeting_ambient_context_items_identity_uidx")
+  @@map("meeting_ambient_context_items")
+}
+
+model meetingAssets {
+  id                     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  meetingId             String @map("meeting_id")   @db.Uuid
+  kind                   String   @default("screen_capture") @db.VarChar(32)
+  storageKey            String @map("storage_key")   @unique
+  contentHash           String @map("content_hash")   @db.VarChar(64)
+  mimeType              String @map("mime_type")   @db.VarChar(64)
+  byteSize              Int @map("byte_size")
+  width                  Int?
+  height                 Int?
+  capturedAt            DateTime @map("captured_at") @db.Timestamptz(6)
+  participantIdentity   String? @map("participant_identity")
+  trackSid              String? @map("track_sid")
+  trigger                String   @db.VarChar(64)
+  transcriptSegmentIds Json @map("transcript_segment_ids")     @default("[]")
+  transcriptExcerpt     String? @map("transcript_excerpt")
+  speakerName           String? @map("speaker_name")  @db.VarChar(120)
+  includeInLinear      Boolean @map("include_in_linear")  @default(false)
+  createdAt             DateTime @map("created_at") @default(now()) @db.Timestamptz(6)
+  updatedAt             DateTime @map("updated_at") @default(now()) @db.Timestamptz(6)
+  meetings               meetings @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([meetingId, contentHash], map: "meeting_assets_meeting_hash_uidx")
+  @@map("meeting_assets")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model meetingAttendanceIntervals {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  meetingId String @map("meeting_id")    @db.Uuid
+  userId    String @map("user_id")    @db.Uuid
+  joinedAt  DateTime @map("joined_at")  @db.Timestamptz(6)
+  leftAt    DateTime? @map("left_at") @db.Timestamptz(6)
+  meetings   meetings  @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      users     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([meetingId, userId], map: "attendance_one_open", where: raw("(left_at IS NULL)"))
+  @@map("meeting_attendance_intervals")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model meetingAttendeeWorkspaces {
+  meetingId   String @map("meeting_id")     @db.Uuid
+  userId      String @map("user_id")     @db.Uuid
+  workspaceId String @map("workspace_id")     @db.Uuid
+  assignment   String
+  createdAt   DateTime @map("created_at")   @default(now()) @db.Timestamptz(6)
+  meetings     meetings   @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users        users      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  workspaces   workspaces @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([meetingId, userId])
+  @@map("meeting_attendee_workspaces")
+}
+
+model meetingCapabilityRecommendations {
+  id                        String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  meetingId                String @map("meeting_id")                    @db.Uuid
+  extractionId             String @map("extraction_id")                    @db.Uuid
+  capabilityKey            String @map("capability_key")                    @db.VarChar(160)
+  rank                      Int
+  rawScore                 Int @map("raw_score")
+  finalScore               Int @map("final_score")
+  signalsMatched           Json @map("signals_matched")                      @default(dbgenerated())
+  signalsMissing           Json @map("signals_missing")                      @default(dbgenerated())
+  exclusionSignalsChecked Json @map("exclusion_signals_checked")                      @default(dbgenerated())
+  reasoning                 String
+  payload                   Json                      @default(dbgenerated())
+  confidence                String
+  selectionPromptVersion  String @map("selection_prompt_version")                    @db.VarChar(32)
+  selectionModel           String @map("selection_model")                    @db.VarChar(160)
+  createdAt                DateTime @map("created_at")                  @default(now()) @db.Timestamptz(6)
+  capabilityWorkflowRuns  capabilityWorkflowRuns?
+  capabilityCatalog        capabilityCatalog        @relation(fields: [capabilityKey], references: [key], onDelete: NoAction, onUpdate: NoAction)
+  meetingExtractions       meetingExtractions       @relation(fields: [extractionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  meetings                  meetings                  @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  meetingResearchRuns     meetingResearchRuns[]
+
+  @@unique([extractionId, capabilityKey, selectionPromptVersion], map: "meeting_capability_recommendations_extraction_capability_prompt")
+  @@map("meeting_capability_recommendations")
+}
+
+model meetingExtractions {
+  id                                 String                               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  meetingId                         String @map("meeting_id")                               @unique(map: "meeting_extractions_meeting_uidx") @db.Uuid
+  status                             String                               @default("pending")
+  meetingType                       String? @map("meeting_type")
+  meetingTypeConfidence            String? @map("meeting_type_confidence")
+  meetingTypeReasoning             String? @map("meeting_type_reasoning")
+  participants                       Json                                 @default(dbgenerated())
+  summaryShort                      String? @map("summary_short")
+  summaryBullets                    Json @map("summary_bullets")                                 @default(dbgenerated())
+  decisions                          Json                                 @default(dbgenerated())
+  actionItems                       Json @map("action_items")                                 @default(dbgenerated())
+  openQuestions                     Json @map("open_questions")                                 @default(dbgenerated())
+  risks                              Json                                 @default(dbgenerated())
+  keyTopics                         Json @map("key_topics")                                 @default(dbgenerated())
+  signals                            Json                                 @default(dbgenerated())
+  failedToolCalls                  Json @map("failed_tool_calls")                                 @default(dbgenerated())
+  extractionModel                   String @map("extraction_model")                               @db.VarChar(160)
+  extractionPromptVersion          String @map("extraction_prompt_version")                               @db.VarChar(32)
+  transcriptHash                    String @map("transcript_hash")                               @db.VarChar(128)
+  durationMs                        Int? @map("duration_ms")
+  startedAt                         DateTime? @map("started_at")                            @db.Timestamptz(6)
+  completedAt                       DateTime? @map("completed_at")                            @db.Timestamptz(6)
+  createdAt                         DateTime @map("created_at")                             @default(now()) @db.Timestamptz(6)
+  updatedAt                         DateTime @map("updated_at")                             @default(now()) @db.Timestamptz(6)
+  highlights                         Json                                 @default(dbgenerated())
+  contentStatus                     String @map("content_status")                               @default("pending")
+  signalsStatus                     String @map("signals_status")                               @default("pending")
+  aiWorkflowExecutions             aiWorkflowExecutions[]
+  meetingCapabilityRecommendations meetingCapabilityRecommendations[]
+  meetings                           meetings                             @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("meeting_extractions")
+}
+
+model meetingJoinRequests {
+  id                                                    String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  meetingLinkId                                       String @map("meeting_link_id")                @db.Uuid
+  meetingId                                            String? @map("meeting_id")               @db.Uuid
+  userId                                               String @map("user_id")                @db.Uuid
+  displayNameSnapshot                                 String @map("display_name_snapshot")                @db.VarChar(120)
+  status                                                String                @default("waiting")
+  requestedAt                                          DateTime @map("requested_at")              @default(now()) @db.Timestamptz(6)
+  decidedAt                                            DateTime? @map("decided_at")             @db.Timestamptz(6)
+  decidedByUserId                                    String? @map("decided_by_user_id")               @db.Uuid
+  createdAt                                            DateTime @map("created_at")              @default(now()) @db.Timestamptz(6)
+  updatedAt                                            DateTime @map("updated_at")              @default(now()) @db.Timestamptz(6)
+  sipCallId                                           String? @map("sip_call_id")               @unique(map: "meeting_join_requests_sip_call_uidx", where: raw("(sip_call_id IS NOT NULL)")) @db.VarChar(255)
+  sipParticipantIdentity                              String? @map("sip_participant_identity")               @db.VarChar(255)
+  sipHoldingRoom                                      String? @map("sip_holding_room")               @db.VarChar(255)
+  activeJoinKey                                       String? @map("active_join_key")               @unique(map: "meeting_join_requests_active_join_key_uidx") @default(dbgenerated("\nCASE\n    WHEN (status = ANY (ARRAY['waiting'::text, 'admitted'::text])) THEN (((meeting_link_id)::text || ':'::text) || (user_id)::text)\n    ELSE NULL::text\nEND"))
+  guestAuthSessions                                   guestAuthSessions[]
+  usersMeetingJoinRequestsDecidedByUserIdTousers users?                @relation("meeting_join_requests_decided_by_user_idTousers", fields: [decidedByUserId], references: [id], onUpdate: NoAction)
+  meetings                                              meetings?             @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  meetingLinks                                         meetingLinks         @relation(fields: [meetingLinkId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  usersMeetingJoinRequestsUserIdTousers            users                 @relation("meeting_join_requests_user_idTousers", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("meeting_join_requests")
+}
+
+model meetingLinkCallIns {
+  id                     String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  meetingLinkId        String @map("meeting_link_id")        @unique(map: "meeting_link_call_ins_meeting_link_uidx") @db.Uuid
+  phoneNumber           String @map("phone_number")        @db.VarChar(32)
+  pin                    String        @db.VarChar(16)
+  sipDispatchRuleId   String? @map("sip_dispatch_rule_id")       @db.VarChar(255)
+  lastSyncedMeetingId String? @map("last_synced_meeting_id")       @db.Uuid
+  status                 String        @default("active") @db.VarChar(32)
+  lastSyncError        String? @map("last_sync_error")
+  createdAt             DateTime @map("created_at")      @default(now()) @db.Timestamptz(6)
+  updatedAt             DateTime @map("updated_at")      @default(now()) @db.Timestamptz(6)
+  dispatchRuleKind     String @map("dispatch_rule_kind")        @default("direct") @db.VarChar(16)
+  meetings               meetings?     @relation(fields: [lastSyncedMeetingId], references: [id], onUpdate: NoAction)
+  meetingLinks          meetingLinks @relation(fields: [meetingLinkId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([phoneNumber, pin], map: "meeting_link_call_ins_phone_pin_uidx")
+  @@map("meeting_link_call_ins")
+}
+
+model meetingLinks {
+  id                       String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code                     String                     @unique @db.VarChar(255)
+  workspaceId             String @map("workspace_id")                     @db.Uuid
+  createdByUserId       String @map("created_by_user_id")                     @db.Uuid
+  title                    String
+  status                   String                     @default("active") @db.VarChar(32)
+  createdAt               DateTime @map("created_at")                   @default(now()) @db.Timestamptz(6)
+  updatedAt               DateTime @map("updated_at")                   @default(now()) @db.Timestamptz(6)
+  calendarReadyLinks     calendarReadyLinks[]
+  googleAddonConferences googleAddonConferences[]
+  guestAuthSessions      guestAuthSessions[]
+  meetingJoinRequests    meetingJoinRequests[]
+  meetingLinkCallIns    meetingLinkCallIns?
+  users                    users                      @relation(fields: [createdByUserId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  workspaces               workspaces                 @relation(fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  meetings                 meetings[]
+  @@map("meeting_links")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model meetingLiveTaskCandidateEvidence {
+  id                           String                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  candidateId                 String @map("candidate_id")                       @db.Uuid
+  roles                        Json                         @default("[]")
+  transcriptSegmentId        String? @map("transcript_segment_id")                      @db.Uuid
+  sourceSegmentId            String? @map("source_segment_id")
+  fullSegmentText            String @map("full_segment_text")
+  quote                        String
+  quoteStart                  Int @map("quote_start")
+  quoteEnd                    Int @map("quote_end")
+  contentHash                 String @map("content_hash")                       @db.VarChar(128)
+  speakerIdentity             String? @map("speaker_identity")
+  speakerUserId              String? @map("speaker_user_id")                      @db.Uuid
+  speakerName                 String @map("speaker_name")                       @db.VarChar(160)
+  startedAt                   DateTime @map("started_at")                     @db.Timestamptz(6)
+  endedAt                     DateTime @map("ended_at")                     @db.Timestamptz(6)
+  sequence                     Int                          @default(0)
+  createdAt                   DateTime @map("created_at")                     @default(now()) @db.Timestamptz(6)
+  meetingLiveTaskCandidates meetingLiveTaskCandidates @relation(fields: [candidateId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                        users?                       @relation(fields: [speakerUserId], references: [id], onUpdate: NoAction)
+  transcriptSegments          transcriptSegments?         @relation(fields: [transcriptSegmentId], references: [id], onUpdate: NoAction)
+  @@map("meeting_live_task_candidate_evidence")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model meetingLiveTaskCandidates {
+  id                                   String                                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  meetingId                           String @map("meeting_id")                                 @db.Uuid
+  linkedTaskId                       String? @map("linked_task_id")                                @db.Uuid
+  state                                String                                 @default("deferred") @db.VarChar(24)
+  title                                String
+  description                          String?
+  type                                 String
+  workKind                            String @map("work_kind")                                 @default("general")
+  ownerName                           String? @map("owner_name")                                @db.VarChar(120)
+  ownerEmail                          String? @map("owner_email")                                @db.VarChar(255)
+  ownerUserId                        String? @map("owner_user_id")                                @db.Uuid
+  ownerConfidence                     String? @map("owner_confidence")
+  dueDateValue                       String? @map("due_date_value")
+  dueDateConfidence                  String? @map("due_date_confidence")
+  confidence                           String
+  completion                           Json
+  sourceQuotes                        Json @map("source_quotes")                                   @default(dbgenerated())
+  sourceReason                        String @map("source_reason")
+  unresolvedQuestions                 Json @map("unresolved_questions")                                   @default(dbgenerated())
+  firstEvidenceAt                    DateTime @map("first_evidence_at")                               @db.Timestamptz(6)
+  actionConfirmableAt                DateTime? @map("action_confirmable_at")                              @db.Timestamptz(6)
+  lastEvidenceAt                     DateTime @map("last_evidence_at")                               @db.Timestamptz(6)
+  model                                String?                                @db.VarChar(160)
+  promptVersion                       String? @map("prompt_version")                                @db.VarChar(32)
+  revision                             Int                                    @default(1)
+  createdAt                           DateTime @map("created_at")                               @default(now()) @db.Timestamptz(6)
+  updatedAt                           DateTime @map("updated_at")                               @default(now()) @db.Timestamptz(6)
+  meetingLiveTaskCandidateEvidence meetingLiveTaskCandidateEvidence[]
+  meetingTasks                        meetingTasks?                         @relation(fields: [linkedTaskId], references: [id], onUpdate: NoAction)
+  meetings                             meetings                               @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                                users?                                 @relation(fields: [ownerUserId], references: [id], onUpdate: NoAction)
+  @@map("meeting_live_task_candidates")
+}
+
+model meetingLiveTaskCursors {
+  meetingId                String @map("meeting_id")               @id @db.Uuid
+  lastProcessedSegmentId String? @map("last_processed_segment_id")              @db.Uuid
+  processedThrough         DateTime? @map("processed_through")            @db.Timestamptz(6)
+  updatedAt                DateTime @map("updated_at")             @default(now()) @db.Timestamptz(6)
+  confirmedTaskOffset     Int @map("confirmed_task_offset")                  @default(0)
+  transcriptSegments       transcriptSegments? @relation(fields: [lastProcessedSegmentId], references: [id], onUpdate: NoAction)
+  meetings                  meetings             @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("meeting_live_task_cursors")
+}
+
+model meetingParticipants {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  meetingId String @map("meeting_id")    @db.Uuid
+  userId    String @map("user_id")    @db.Uuid
+  role       String    @default("guest")
+  joinedAt  DateTime @map("joined_at")  @default(now()) @db.Timestamptz(6)
+  leftAt    DateTime? @map("left_at") @db.Timestamptz(6)
+  meetings   meetings  @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users      users     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("meeting_participants")
+}
+
+model meetingResearchRuns {
+  id                                 String                             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  meetingId                         String @map("meeting_id")                             @db.Uuid
+  recommendationId                  String @map("recommendation_id")                             @db.Uuid
+  userId                            String @map("user_id")                             @db.Uuid
+  agentProfileId                   String @map("agent_profile_id")                             @db.Uuid
+  query                              String
+  taskKind                          String @map("task_kind")                             @default("answer_question") @db.VarChar(64)
+  status                             String                             @default("queued")
+  progressLabel                     String? @map("progress_label")
+  progressDetail                    String? @map("progress_detail")
+  progressUpdatedAt                DateTime? @map("progress_updated_at")                          @db.Timestamptz(6)
+  runRefs                           Json @map("run_refs")                               @default(dbgenerated())
+  result                             Json                               @default(dbgenerated())
+  error                              Json?
+  createdAt                         DateTime @map("created_at")                           @default(now()) @db.Timestamptz(6)
+  updatedAt                         DateTime @map("updated_at")                           @default(now()) @db.Timestamptz(6)
+  completedAt                       DateTime? @map("completed_at")                          @db.Timestamptz(6)
+  cancelledAt                       DateTime? @map("cancelled_at")                          @db.Timestamptz(6)
+  activeRecommendationKey          String? @map("active_recommendation_key")                            @unique(map: "meeting_research_runs_active_recommendation_key_uidx") @default(dbgenerated("\nCASE\n    WHEN (status = ANY (ARRAY['queued'::text, 'running'::text])) THEN (((meeting_id)::text || ':'::text) || (recommendation_id)::text)\n    ELSE NULL::text\nEND"))
+  agentProfiles                     agentProfiles                     @relation(fields: [agentProfileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  meetings                           meetings                           @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  meetingCapabilityRecommendations meetingCapabilityRecommendations @relation(fields: [recommendationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                              users                              @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("meeting_research_runs")
+}
+
+model meetingSuggestedActionRuns {
+  id                          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  meetingId                  String @map("meeting_id")    @unique @db.Uuid
+  status                      String    @default("pending") @db.VarChar(32)
+  phase                       String    @default("reading_notes") @db.VarChar(64)
+  steps                       Json      @default(dbgenerated())
+  message                     String?
+  error                       String?
+  selectedRecommendationIds Json @map("selected_recommendation_ids")      @default("[]")
+  startedAt                  DateTime? @map("started_at") @db.Timestamptz(6)
+  completedAt                DateTime? @map("completed_at") @db.Timestamptz(6)
+  createdAt                  DateTime @map("created_at")  @default(now()) @db.Timestamptz(6)
+  updatedAt                  DateTime @map("updated_at")  @default(now()) @db.Timestamptz(6)
+  meetings                    meetings  @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("meeting_suggested_action_runs")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model meetingTaskLatencyObservations {
+  id                      String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  meetingId              String @map("meeting_id")        @db.Uuid
+  taskId                 String @map("task_id")        @db.Uuid
+  taskRevision           Int @map("task_revision")
+  kind                    String        @db.VarChar(24)
+  evidenceAt             DateTime @map("evidence_at")      @db.Timestamptz(6)
+  transcriptReceivedAt  DateTime? @map("transcript_received_at")     @db.Timestamptz(6)
+  queueStartedAt        DateTime? @map("queue_started_at")     @db.Timestamptz(6)
+  modelCompletedAt      DateTime? @map("model_completed_at")     @db.Timestamptz(6)
+  validationCommittedAt DateTime @map("validation_committed_at")      @default(now()) @db.Timestamptz(6)
+  outboxPublishedAt     DateTime? @map("outbox_published_at")     @db.Timestamptz(6)
+  realtimeReceivedAt    DateTime? @map("realtime_received_at")     @db.Timestamptz(6)
+  refetchStartedAt      DateTime? @map("refetch_started_at")     @db.Timestamptz(6)
+  refetchCompletedAt    DateTime? @map("refetch_completed_at")     @db.Timestamptz(6)
+  renderedAt             DateTime? @map("rendered_at")     @db.Timestamptz(6)
+  clientContinuity       String? @map("client_continuity")       @db.VarChar(16)
+  createdAt              DateTime @map("created_at")      @default(now()) @db.Timestamptz(6)
+  updatedAt              DateTime @map("updated_at")      @default(now()) @db.Timestamptz(6)
+  meetings                meetings      @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  meetingTasks           meetingTasks @relation(fields: [taskId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([taskId, taskRevision, kind], map: "meeting_task_latency_observations_revision_kind_uidx")
+  @@map("meeting_task_latency_observations")
+}
+
+model meetingTaskLists {
+  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  meetingId              String @map("meeting_id")                    @unique @db.Uuid
+  status                  String                    @default("pending")
+  phase                   String?                   @db.VarChar(64)
+  error                   Json?
+  model                   String?                   @db.VarChar(160)
+  promptVersion          String? @map("prompt_version")                   @db.VarChar(32)
+  transcriptHash         String? @map("transcript_hash")                   @db.VarChar(128)
+  createdAt              DateTime @map("created_at")                  @default(now()) @db.Timestamptz(6)
+  updatedAt              DateTime @map("updated_at")                  @default(now()) @db.Timestamptz(6)
+  completedAt            DateTime? @map("completed_at")                 @db.Timestamptz(6)
+  taskListVersion       Int @map("task_list_version")                       @default(1)
+  linearTaskReviewRuns linearTaskReviewRuns[]
+  meetings                meetings                  @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  meetingTasks           meetingTasks[]
+  @@map("meeting_task_lists")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model meetingTasks {
+  id                                              String                              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  meetingId                                      String @map("meeting_id")                              @db.Uuid
+  taskListId                                    String @map("task_list_id")                              @db.Uuid
+  position                                        Int                                 @default(0)
+  title                                           String
+  description                                     String?
+  type                                            String
+  ownerName                                      String? @map("owner_name")                             @db.VarChar(120)
+  ownerEmail                                     String? @map("owner_email")                             @db.VarChar(255)
+  ownerConfidence                                String? @map("owner_confidence")
+  dueDateValue                                  String? @map("due_date_value")
+  dueDateConfidence                             String? @map("due_date_confidence")
+  confidence                                      String
+  sourceQuotes                                   Json @map("source_quotes")                                @default(dbgenerated())
+  sourceReason                                   String @map("source_reason")
+  status                                          String                              @default("open")
+  createdFrom                                    String @map("created_from")                              @default("meeting_transcript")
+  externalLinks                                  Json @map("external_links")                                @default(dbgenerated())
+  createdAt                                      DateTime @map("created_at")                            @default(now()) @db.Timestamptz(6)
+  updatedAt                                      DateTime @map("updated_at")                            @default(now()) @db.Timestamptz(6)
+  workKind                                       String @map("work_kind")                              @default("general")
+  ownerUserId                                   String? @map("owner_user_id")                             @db.Uuid
+  revision                                        Int                                 @default(1)
+  completedAt                                    DateTime? @map("completed_at")                           @db.Timestamptz(6)
+  assetIds                                       Json @map("asset_ids")                                @default("[]")
+  origin                                          String                              @default("final") @db.VarChar(16)
+  statusSource                                   String @map("status_source")                              @default("model") @db.VarChar(16)
+  statusActorUserId                            String? @map("status_actor_user_id")                             @db.Uuid
+  statusChangedAt                               DateTime @map("status_changed_at")                            @default(now()) @db.Timestamptz(6)
+  actionConfirmableAt                           DateTime? @map("action_confirmable_at")                           @db.Timestamptz(6)
+  detectedAt                                     DateTime? @map("detected_at")                           @db.Timestamptz(6)
+  firstRenderedAt                               DateTime? @map("first_rendered_at")                           @db.Timestamptz(6)
+  firstRenderedReportedAt                      DateTime? @map("first_rendered_reported_at")                           @db.Timestamptz(6)
+  realtimeReceivedAt                            DateTime? @map("realtime_received_at")                           @db.Timestamptz(6)
+  refetchStartedAt                              DateTime? @map("refetch_started_at")                           @db.Timestamptz(6)
+  refetchCompletedAt                            DateTime? @map("refetch_completed_at")                           @db.Timestamptz(6)
+  meetingLiveTaskCandidates                    meetingLiveTaskCandidates[]
+  meetingTaskLatencyObservations               meetingTaskLatencyObservations[]
+  meetings                                        meetings                            @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  usersMeetingTasksOwnerUserIdTousers        users?                              @relation("meeting_tasks_owner_user_idTousers", fields: [ownerUserId], references: [id], onUpdate: NoAction)
+  usersMeetingTasksStatusActorUserIdTousers users?                              @relation("meeting_tasks_status_actor_user_idTousers", fields: [statusActorUserId], references: [id], onUpdate: NoAction)
+  meetingTaskLists                              meetingTaskLists                  @relation(fields: [taskListId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("meeting_tasks")
+}
+
+model meetingFinalizationClaims {
+  meetingId String   @id @map("meeting_id") @db.Uuid
+  claimId   String   @map("claim_id") @db.Uuid
+  claimedAt DateTime @default(now()) @map("claimed_at") @db.Timestamptz(6)
+  meetings  meetings @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("meeting_finalization_claims")
+}
+
+model meetingTrackers {
+  meetingId            String @map("meeting_id")    @id @db.Uuid
+  revision              Int       @default(0)
+  items                 Json      @default(dbgenerated())
+  processedSegmentIds Json @map("processed_segment_ids")      @default("[]")
+  updatedAt            DateTime? @map("updated_at") @db.Timestamptz(6)
+  status                String    @default("idle")
+  meetings              meetings  @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("meeting_trackers")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model meetingTrialSlots {
+  userId      String @map("user_id")     @db.Uuid
+  workspaceId String @map("workspace_id")     @db.Uuid
+  meetingId   String? @map("meeting_id")    @db.Uuid
+  slot         Int        @db.SmallInt
+  allocatedAt DateTime @map("allocated_at")   @default(now()) @db.Timestamptz(6)
+  meetings     meetings?  @relation(fields: [meetingId], references: [id], onUpdate: NoAction)
+  users        users      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  workspaces   workspaces @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([userId, workspaceId, slot])
+  @@unique([userId, meetingId])
+  @@map("meeting_trial_slots")
+}
+
+model meetingTurns {
+  id                         String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  meetingId                 String @map("meeting_id")                @db.Uuid
+  ownerUserId              String @map("owner_user_id")                @db.Uuid
+  ownerParticipantIdentity String @map("owner_participant_identity")
+  agentProfileId           String @map("agent_profile_id")                @db.Uuid
+  assistantDisplayName     String @map("assistant_display_name")                @db.VarChar(120)
+  voiceId                   String? @map("voice_id")               @db.VarChar(120)
+  status                     String                @default("active") @db.VarChar(32)
+  startedAt                 DateTime @map("started_at")              @default(now()) @db.Timestamptz(6)
+  endedAt                   DateTime? @map("ended_at")             @db.Timestamptz(6)
+  createdAt                 DateTime @map("created_at")              @default(now()) @db.Timestamptz(6)
+  updatedAt                 DateTime @map("updated_at")              @default(now()) @db.Timestamptz(6)
+  activeTurnKey            String? @map("active_turn_key")               @unique(map: "meeting_turns_active_turn_key_uidx") @default(dbgenerated("\nCASE\n    WHEN ((status)::text = 'active'::text) THEN (meeting_id)::text\n    ELSE NULL::text\nEND"))
+  agentProfiles             agentProfiles        @relation(fields: [agentProfileId], references: [id], onUpdate: NoAction)
+  meetings                   meetings              @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                      users                 @relation(fields: [ownerUserId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  transcriptSegments        transcriptSegments[]
+  @@map("meeting_turns")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model meetings {
+  id                                                       String                               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title                                                    String
+  roomName                                                String @map("room_name")                               @unique @db.VarChar(255)
+  createdByUserId                                       String @map("created_by_user_id")                               @db.Uuid
+  status                                                   String                               @default("scheduled")
+  createdAt                                               DateTime @map("created_at")                             @default(now()) @db.Timestamptz(6)
+  startedAt                                               DateTime? @map("started_at")                            @db.Timestamptz(6)
+  endedAt                                                 DateTime? @map("ended_at")                            @db.Timestamptz(6)
+  hiddenFromHistoryAt                                   DateTime? @map("hidden_from_history_at")                            @db.Timestamptz(6)
+  hiddenFromHistoryReason                               String? @map("hidden_from_history_reason")
+  workspaceId                                             String @map("workspace_id")                               @db.Uuid
+  meetingLinkId                                          String? @map("meeting_link_id")                              @db.Uuid
+  instanceNumber                                          Int @map("instance_number")                                  @default(1)
+  kind                                                     String                               @default("standard") @db.VarChar(32)
+  isConfidential                                          Boolean @map("is_confidential")                              @default(true)
+  confidentialitySource                                   String? @map("confidentiality_source")                              @db.VarChar(16)
+  confidentialityUpdatedByUserId                       String? @map("confidentiality_updated_by_user_id")                              @db.Uuid
+  confidentialityUpdatedAt                               DateTime? @map("confidentiality_updated_at")                            @db.Timestamptz(6)
+  agentIntroKey                                          String? @map("agent_intro_key")                              @unique(map: "meetings_agent_intro_key_uidx") @default(dbgenerated("\nCASE\n    WHEN (((kind)::text = 'agent_intro'::text) AND (hidden_from_history_reason IS DISTINCT FROM 'debug_onboarding_reset'::text)) THEN (created_by_user_id)::text\n    ELSE NULL::text\nEND"))
+  currentLinkKey                                         String? @map("current_link_key")                              @unique(map: "meetings_current_link_key_uidx") @default(dbgenerated("\nCASE\n    WHEN ((meeting_link_id IS NOT NULL) AND (status = ANY (ARRAY['scheduled'::text, 'active'::text]))) THEN (meeting_link_id)::text\n    ELSE NULL::text\nEND"))
+  actionItems                                             actionItems[]
+  agentToolInvocations                                   agentToolInvocations[]
+  aiCreditUsageEvents                                   aiCreditUsageEvents[]
+  aiWorkflowExecutions                                   aiWorkflowExecutions[]
+  ashbyMeetingAnalyses                                   ashbyMeetingAnalyses[]
+  ashbyReviewActions                                     ashbyReviewActions[]
+  ashbyReviews                                            ashbyReviews[]
+  capabilityWorkflowRuns                                 capabilityWorkflowRuns[]
+  guestAuthSessions                                      guestAuthSessions[]
+  linearTaskReviewRuns                                  linearTaskReviewRuns[]
+  meetingAmbientContextCursors                          meetingAmbientContextCursors?
+  meetingAmbientContextItems                            meetingAmbientContextItems[]
+  meetingAssets                                           meetingAssets[]
+  meetingAttendanceIntervals                             meetingAttendanceIntervals[]
+  meetingAttendeeWorkspaces                              meetingAttendeeWorkspaces[]
+  meetingCapabilityRecommendations                       meetingCapabilityRecommendations[]
+  meetingExtractions                                      meetingExtractions?
+  meetingJoinRequests                                    meetingJoinRequests[]
+  meetingLinkCallIns                                    meetingLinkCallIns[]
+  meetingLiveTaskCandidates                             meetingLiveTaskCandidates[]
+  meetingLiveTaskCursors                                meetingLiveTaskCursors?
+  meetingParticipants                                     meetingParticipants[]
+  meetingResearchRuns                                    meetingResearchRuns[]
+  meetingSuggestedActionRuns                            meetingSuggestedActionRuns?
+  meetingTaskLatencyObservations                        meetingTaskLatencyObservations[]
+  meetingTaskLists                                       meetingTaskLists?
+  meetingTasks                                            meetingTasks[]
+  meetingFinalizationClaims                               meetingFinalizationClaims?
+  meetingTrackers                                         meetingTrackers?
+  meetingTrialSlots                                      meetingTrialSlots[]
+  meetingTurns                                            meetingTurns[]
+  usersMeetingsConfidentialityUpdatedByUserIdTousers users?                               @relation("meetings_confidentiality_updated_by_user_idTousers", fields: [confidentialityUpdatedByUserId], references: [id], onUpdate: NoAction)
+  usersMeetingsCreatedByUserIdTousers                 users                                @relation("meetings_created_by_user_idTousers", fields: [createdByUserId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  meetingLinks                                            meetingLinks?                       @relation(fields: [meetingLinkId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  workspaces                                               workspaces                           @relation(fields: [workspaceId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  memoryGenerationLedger                                 memoryGenerationLedger[]
+  memorySources                                           memorySources[]
+  slackMeetingDeliveries                                 slackMeetingDeliveries?
+  slackMeetingReviews                                    slackMeetingReviews?
+  summaries                                                summaries?
+  transcripts                                              transcripts?
+  usageEvents                                             usageEvents[]
+  voiceWebResearchRuns                                  voiceWebResearchRuns[]
+
+  @@unique([id, workspaceId], map: "meetings_id_workspace_unique")
+}
+
+model memoryEvidence {
+  memoryId             String @map("memory_id")                @db.Uuid
+  segmentId            String @map("segment_id")                @db.Uuid
+  quote                 String
+  relationshipMemories relationshipMemories @relation(fields: [memoryId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  transcriptSegments   transcriptSegments   @relation(fields: [segmentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([memoryId, segmentId])
+  @@map("memory_evidence")
+}
+
+model memoryGenerationLedger {
+  userId              String @map("user_id")          @db.Uuid
+  meetingId           String @map("meeting_id")          @db.Uuid
+  workspaceId         String @map("workspace_id")          @db.Uuid
+  jobId               String @map("job_id")          @unique @db.Uuid
+  modelStartedAt     DateTime? @map("model_started_at")       @db.Timestamptz(6)
+  sourceId            String? @map("source_id")         @db.Uuid
+  sourceRevision      String? @map("source_revision")
+  preferencesRevision Int? @map("preferences_revision")
+  requestToken        String? @map("request_token")         @db.Uuid
+  completedAt         DateTime? @map("completed_at")       @db.Timestamptz(6)
+  error                String?
+  meetings             meetings        @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  memorySources       memorySources? @relation(fields: [sourceId], references: [id], onUpdate: NoAction)
+  users                users           @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([userId, meetingId])
+  @@map("memory_generation_ledger")
+}
+
+model memoryInteractions {
+  sourceId      String @map("source_id")         @db.Uuid
+  personId      String @map("person_id")         @db.Uuid
+  occurredAt    DateTime @map("occurred_at")       @db.Timestamptz(6)
+  memoryPeople  memoryPeople  @relation(fields: [personId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  memorySources memorySources @relation(fields: [sourceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([sourceId, personId])
+  @@map("memory_interactions")
+}
+
+model memoryLegacySuppressions {
+  sourceId      String @map("source_id")         @db.Uuid
+  segmentId     String @map("segment_id")         @db.Uuid
+  memorySources memorySources @relation(fields: [sourceId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "memory_suppressions_source_id_fkey")
+
+  @@id([sourceId, segmentId], map: "memory_suppressions_pkey")
+  @@map("memory_legacy_suppressions")
+}
+
+model memoryPeople {
+  id                                                                                              String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                                                                                         String @map("user_id")                     @db.Uuid
+  workspaceId                                                                                    String @map("workspace_id")                     @db.Uuid
+  name                                                                                            String
+  memoryInteractions                                                                             memoryInteractions[]
+  users                                                                                           users                      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  workspaces                                                                                      workspaces                 @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  memoryPersonIdentitiesMemoryPersonIdentitiesPersonIdTomemoryPeople                      memoryPersonIdentities[] @relation("memory_person_identities_person_idTomemory_people")
+  memoryPersonIdentitiesMemoryPersonIdentitiesPersonIdUserIdWorkspaceIdTomemoryPeople memoryPersonIdentities[] @relation("memory_person_identities_person_id_user_id_workspace_idTomemory_people")
+  memoryPersonNames                                                                             memoryPersonNames[]
+  memoryPersonProjections                                                                       memoryPersonProjections?
+  memoryPersonRedirectsMemoryPersonRedirectsPersonIdTomemoryPeople                        memoryPersonRedirects?   @relation("memory_person_redirects_person_idTomemory_people")
+  memoryPersonRedirectsMemoryPersonRedirectsTargetPersonIdTomemoryPeople                 memoryPersonRedirects[]  @relation("memory_person_redirects_target_person_idTomemory_people")
+  relationshipMemories                                                                           relationshipMemories[]
+
+  @@unique([id, userId, workspaceId])
+  @@map("memory_people")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model memoryPersonIdentities {
+  personId                                                                            String @map("person_id")        @db.Uuid
+  userId                                                                              String @map("user_id")        @db.Uuid
+  workspaceId                                                                         String @map("workspace_id")        @db.Uuid
+  kind                                                                                 String
+  identity                                                                             String
+  memoryPeopleMemoryPersonIdentitiesPersonIdTomemoryPeople                      memoryPeople @relation("memory_person_identities_person_idTomemory_people", fields: [personId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  memoryPeopleMemoryPersonIdentitiesPersonIdUserIdWorkspaceIdTomemoryPeople memoryPeople @relation("memory_person_identities_person_id_user_id_workspace_idTomemory_people", fields: [personId, userId, workspaceId], references: [id, userId, workspaceId], onDelete: Cascade, onUpdate: NoAction)
+  users                                                                                users         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  workspaces                                                                           workspaces    @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([userId, workspaceId, kind, identity])
+  @@map("memory_person_identities")
+}
+
+model memoryPersonNames {
+  personId           String @map("person_id")         @db.Uuid
+  sourceId           String @map("source_id")         @db.Uuid
+  participantUserId String @map("participant_user_id")         @db.Uuid
+  name                String
+  normalizedName     String @map("normalized_name")
+  wordCount          Int @map("word_count")
+  observedAt         DateTime @map("observed_at")       @db.Timestamptz(6)
+  users               users          @relation(fields: [participantUserId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  memoryPeople       memoryPeople  @relation(fields: [personId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  memorySources      memorySources @relation(fields: [sourceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([personId, sourceId, participantUserId])
+  @@map("memory_person_names")
+}
+
+model memoryPersonProjections {
+  personId        String @map("person_id")        @id @db.Uuid
+  inputHash       String @map("input_hash")
+  content          Json
+  promptVersion   String @map("prompt_version")
+  updatedAt       DateTime @map("updated_at")      @default(now()) @db.Timestamptz(6)
+  sourceRevisions Json? @map("source_revisions")
+  memoryPeople    memoryPeople @relation(fields: [personId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("memory_person_projections")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model memoryPersonRedirects {
+  personId                                                             String @map("person_id")        @id @db.Uuid
+  targetPersonId                                                      String @map("target_person_id")        @db.Uuid
+  memoryPeopleMemoryPersonRedirectsPersonIdTomemoryPeople        memoryPeople @relation("memory_person_redirects_person_idTomemory_people", fields: [personId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  memoryPeopleMemoryPersonRedirectsTargetPersonIdTomemoryPeople memoryPeople @relation("memory_person_redirects_target_person_idTomemory_people", fields: [targetPersonId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("memory_person_redirects")
+}
+
+model memoryPreferences {
+  userId                    String @map("user_id")                       @db.Uuid
+  workspaceId               String @map("workspace_id")                       @db.Uuid
+  includeSensitive          Boolean @map("include_sensitive")                      @default(false)
+  language                   String                       @default("English")
+  revision                   Int                          @default(1)
+  users                      users                        @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  workspaces                 workspaces                   @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  memorySensitivityHistory memorySensitivityHistory[]
+
+  @@id([userId, workspaceId])
+  @@map("memory_preferences")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model memoryRuntimePolicy {
+  id                Boolean  @id @default(true)
+  futureOnlySince DateTime @map("future_only_since") @default(dbgenerated("clock_timestamp()")) @db.Timestamptz(6)
+  @@map("memory_runtime_policy")
+}
+
+model memorySensitivityHistory {
+  userId            String @map("user_id")             @db.Uuid
+  workspaceId       String @map("workspace_id")             @db.Uuid
+  effectiveAt       DateTime @map("effective_at")           @db.Timestamptz(6)
+  includeSensitive  Boolean @map("include_sensitive")
+  memoryPreferences memoryPreferences @relation(fields: [userId, workspaceId], references: [userId, workspaceId], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([userId, workspaceId, effectiveAt])
+  @@map("memory_sensitivity_history")
+}
+
+model memorySources {
+  id                         String                       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                    String @map("user_id")                       @db.Uuid
+  workspaceId               String @map("workspace_id")                       @db.Uuid
+  kind                       String
+  externalId                String @map("external_id")
+  meetingId                 String? @map("meeting_id")                      @db.Uuid
+  occurredAt                DateTime @map("occurred_at")                     @db.Timestamptz(6)
+  revision                   String
+  isCurrent                 Boolean @map("is_current")                      @default(false)
+  includeSensitive          Boolean @map("include_sensitive")                      @default(false)
+  memoryGenerationLedger   memoryGenerationLedger[]
+  memoryInteractions        memoryInteractions[]
+  memoryLegacySuppressions memoryLegacySuppressions[]
+  memoryPersonNames        memoryPersonNames[]
+  meetings                   meetings?                    @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                      users                        @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  workspaces                 workspaces                   @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  memorySuppressions        memorySuppressions[]
+  relationshipMemories      relationshipMemories[]
+
+  @@unique([id, userId, workspaceId])
+  @@unique([userId, workspaceId, kind, externalId])
+  @@map("memory_sources")
+}
+
+model memorySuppressions {
+  sourceId        String @map("source_id")         @db.Uuid
+  factFingerprint String @map("fact_fingerprint")
+  factIdentity    Json @map("fact_identity")
+  memorySources   memorySources @relation(fields: [sourceId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "memory_suppressions_source_id_fkey1")
+
+  @@id([sourceId, factFingerprint], map: "memory_suppressions_pkey1")
+  @@map("memory_suppressions")
+}
+
+model memorySyncChanges {
+  userId           String @map("user_id")            @db.Uuid
+  workspaceId      String @map("workspace_id")            @db.Uuid
+  memoryId         String @map("memory_id")            @db.Uuid
+  sourceId         String @map("source_id")            @db.Uuid
+  version           BigInt
+  memorySyncHeads memorySyncHeads @relation(fields: [userId, workspaceId], references: [userId, workspaceId], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([userId, workspaceId, memoryId])
+  @@map("memory_sync_changes")
+}
+
+model memorySyncHeads {
+  userId             String @map("user_id")                @db.Uuid
+  workspaceId        String @map("workspace_id")                @db.Uuid
+  version             BigInt                @default(0)
+  memorySyncChanges memorySyncChanges[]
+  users               users                 @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  workspaces          workspaces            @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([userId, workspaceId])
+  @@map("memory_sync_heads")
+}
+
+model pendingGoogleAddonCalendarCredentials {
+  agentConnectorId String @map("agent_connector_id")           @id @db.Uuid
+  secretRef         String @map("secret_ref")
+  createdAt         DateTime @map("created_at")         @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime @map("updated_at")         @default(now()) @db.Timestamptz(6)
+  agentConnectors   agentConnectors @relation(fields: [agentConnectorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "pending_google_addon_calendar_credentia_agent_connector_id_fkey")
+  @@map("pending_google_addon_calendar_credentials")
+}
+
+model personalTaskClearances {
+  userId          String @map("user_id")     @db.Uuid
+  workspaceId     String @map("workspace_id")     @db.Uuid
+  completedBefore DateTime @map("completed_before")   @db.Timestamptz(6)
+  users            users      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  workspaces       workspaces @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([userId, workspaceId])
+  @@map("personal_task_clearances")
+}
+
+model personalTaskItemClearances {
+  userId          String @map("user_id")     @db.Uuid
+  workspaceId     String @map("workspace_id")     @db.Uuid
+  sourceType      String @map("source_type")
+  sourceTaskId   String @map("source_task_id")     @db.Uuid
+  completedBefore DateTime @map("completed_before")   @db.Timestamptz(6)
+  users            users      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  workspaces       workspaces @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([userId, workspaceId, sourceType, sourceTaskId])
+  @@map("personal_task_item_clearances")
+}
+
+model privateBetaWaitlistEntries {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String @map("user_id")   @unique(map: "private_beta_waitlist_entries_user_uidx") @db.Uuid
+  requestedAt DateTime @map("requested_at") @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime @map("updated_at") @default(now()) @db.Timestamptz(6)
+  metadata     Json     @default("{}")
+  users        users    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("private_beta_waitlist_entries")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model relationshipMemories {
+  id                    String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sourceId             String @map("source_id")            @db.Uuid
+  fingerprint           String
+  title                 String
+  description           String
+  category              String
+  personIds            String[] @map("person_ids")          @db.Uuid
+  candidateSubjectId  String? @map("candidate_subject_id")           @db.Uuid
+  candidateSubjectKey String? @map("candidate_subject_key")
+  sensitive             Boolean
+  confidence            String
+  occurredAt           DateTime @map("occurred_at")          @db.Timestamptz(6)
+  importance            Int               @default(1) @db.SmallInt
+  factFingerprint      String @map("fact_fingerprint")
+  factIdentity         Json @map("fact_identity")
+  evidenceOccurredAt  DateTime? @map("evidence_occurred_at")         @db.Timestamptz(6)
+  memoryEvidence       memoryEvidence[]
+  memoryPeople         memoryPeople?    @relation(fields: [candidateSubjectId], references: [id], onUpdate: NoAction)
+  memorySources        memorySources    @relation(fields: [sourceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([sourceId, fingerprint])
+  @@map("relationship_memories")
+}
+
+model schemaMigrations {
+  filename   String   @id
+  appliedAt DateTime @map("applied_at") @default(now()) @db.Timestamptz(6)
+  @@map("schema_migrations")
+}
+
+model slackDeliveryConfigs {
+  userId    String @map("user_id")   @id @db.Uuid
+  routes     Json     @default("{}")
+  createdAt DateTime @map("created_at") @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @map("updated_at") @default(now()) @db.Timestamptz(6)
+  users      users    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("slack_delivery_configs")
+}
+
+model slackMeetingDeliveries {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String @map("user_id")   @db.Uuid
+  meetingId   String @map("meeting_id")   @unique @db.Uuid
+  status       String   @db.VarChar(32)
+  category     String?  @db.VarChar(64)
+  channelId   String? @map("channel_id")
+  channelName String? @map("channel_name")
+  skipReason  String? @map("skip_reason")
+  messageTs   String? @map("message_ts")
+  createdAt   DateTime @map("created_at") @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime @map("updated_at") @default(now()) @db.Timestamptz(6)
+  meetings     meetings @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users        users    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("slack_meeting_deliveries")
+}
+
+model slackMeetingReviews {
+  id                      String                    @id @db.Uuid
+  meetingId              String @map("meeting_id")                    @unique @db.Uuid
+  userId                 String @map("user_id")                    @db.Uuid
+  version                 Int                       @default(1)
+  status                  String
+  review                  Json
+  updatedAt              DateTime @map("updated_at")                  @default(now()) @db.Timestamptz(6)
+  meetings                meetings                  @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users                   users                     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  slackReviewDeliveries slackReviewDeliveries[]
+  @@map("slack_meeting_reviews")
+}
+
+model slackReviewDeliveries {
+  reviewId             String @map("review_id")                @db.Uuid
+  destination           String
+  status                String
+  messageTs            String? @map("message_ts")
+  slackMeetingReviews slackMeetingReviews @relation(fields: [reviewId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([reviewId, destination])
+  @@map("slack_review_deliveries")
+}
+
+model stripeWebhookReceipts {
+  stripeEventId String @map("stripe_event_id")   @id
+  eventType      String @map("event_type")
+  processedAt    DateTime @map("processed_at") @default(now()) @db.Timestamptz(6)
+  @@map("stripe_webhook_receipts")
+}
+
+model summaries {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  meetingId   String @map("meeting_id")   @unique @db.Uuid
+  content      String
+  model        String   @default("placeholder-v1") @db.VarChar(120)
+  generatedAt DateTime @map("generated_at") @default(now()) @db.Timestamptz(6)
+  createdAt   DateTime @map("created_at") @default(now()) @db.Timestamptz(6)
+  meetings     meetings @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model transcriptSegments {
+  id                                                   String                                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  transcriptId                                        String @map("transcript_id")                                 @db.Uuid
+  speakerUserId                                      String? @map("speaker_user_id")                                @db.Uuid
+  speakerName                                         String @map("speaker_name")                                 @db.VarChar(120)
+  content                                              String
+  startedAt                                           DateTime @map("started_at")                               @db.Timestamptz(6)
+  endedAt                                             DateTime? @map("ended_at")                              @db.Timestamptz(6)
+  createdAt                                           DateTime @map("created_at")                               @default(now()) @db.Timestamptz(6)
+  speakerIdentity                                     String @map("speaker_identity")
+  speakerRole                                         String @map("speaker_role")                                 @default("human") @db.VarChar(32)
+  source                                               String                                 @default("legacy-transcript") @db.VarChar(64)
+  sourceSegmentId                                    String? @map("source_segment_id")
+  meetingTurnId                                      String? @map("meeting_turn_id")                                @db.Uuid
+  agentProfileId                                     String? @map("agent_profile_id")                                @db.Uuid
+  agentOwnerUserId                                  String? @map("agent_owner_user_id")                                @db.Uuid
+  voiceId                                             String? @map("voice_id")                                @db.VarChar(120)
+  meetingAmbientContextCursors                      meetingAmbientContextCursors[]
+  meetingLiveTaskCandidateEvidence                 meetingLiveTaskCandidateEvidence[]
+  meetingLiveTaskCursors                            meetingLiveTaskCursors[]
+  memoryEvidence                                      memoryEvidence[]
+  usersTranscriptSegmentsAgentOwnerUserIdTousers users?                                 @relation("transcript_segments_agent_owner_user_idTousers", fields: [agentOwnerUserId], references: [id], onUpdate: NoAction)
+  agentProfiles                                       agentProfiles?                        @relation(fields: [agentProfileId], references: [id], onUpdate: NoAction)
+  meetingTurns                                        meetingTurns?                         @relation(fields: [meetingTurnId], references: [id], onUpdate: NoAction)
+  usersTranscriptSegmentsSpeakerUserIdTousers     users?                                 @relation("transcript_segments_speaker_user_idTousers", fields: [speakerUserId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  transcripts                                          transcripts                            @relation(fields: [transcriptId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([transcriptId, source, sourceSegmentId], map: "transcript_segments_source_segment_uidx", where: raw("(source_segment_id IS NOT NULL)"))
+  @@map("transcript_segments")
+}
+
+model transcripts {
+  id                  String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  meetingId          String @map("meeting_id")                @unique @db.Uuid
+  source              String                @default("livekit") @db.VarChar(64)
+  metadata            Json                  @default(dbgenerated())
+  createdAt          DateTime @map("created_at")              @default(now()) @db.Timestamptz(6)
+  transcriptSegments transcriptSegments[]
+  meetings            meetings              @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model usageEvents {
+  id                       String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                  String @map("user_id")                    @db.Uuid
+  meetingId               String? @map("meeting_id")                   @db.Uuid
+  jobId                   String? @map("job_id")                   @db.Uuid
+  workflowRunId          String? @map("workflow_run_id")                   @db.Uuid
+  provider                 String                    @db.VarChar(64)
+  category                 String                    @db.VarChar(64)
+  model                    String?                   @db.VarChar(160)
+  sku                      String?                   @db.VarChar(160)
+  unitCount               Int @map("unit_count")                       @default(0)
+  unitType                String @map("unit_type")                    @db.VarChar(64)
+  unitPriceMicroUsd     Int? @map("unit_price_micro_usd")
+  costMicroUsd           Int @map("cost_micro_usd")                       @default(0)
+  source                   String                    @db.VarChar(120)
+  idempotencyKey          String? @map("idempotency_key")                   @unique(map: "usage_events_idempotency_key_uidx", where: raw("(idempotency_key IS NOT NULL)")) @db.VarChar(255)
+  metadata                 Json                      @default("{}")
+  occurredAt              DateTime @map("occurred_at")                  @default(now()) @db.Timestamptz(6)
+  createdAt               DateTime @map("created_at")                  @default(now()) @db.Timestamptz(6)
+  aiWorkflowExecutions   aiWorkflowExecutions?   @relation(fields: [jobId], references: [id], onUpdate: NoAction)
+  meetings                 meetings?                 @relation(fields: [meetingId], references: [id], onUpdate: NoAction)
+  users                    users                     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  capabilityWorkflowRuns capabilityWorkflowRuns? @relation(fields: [workflowRunId], references: [id], onUpdate: NoAction)
+  @@map("usage_events")
+}
+
+model userAcquisition {
+  userId           String @map("user_id")      @id @db.Uuid
+  workspaceId      String? @map("workspace_id")     @db.Uuid
+  attribution       Json
+  analyticsEnabled Boolean @map("analytics_enabled")     @default(true)
+  createdAt        DateTime @map("created_at")    @default(now()) @db.Timestamptz(6)
+  users             users       @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  workspaces        workspaces? @relation(fields: [workspaceId], references: [id], onUpdate: NoAction)
+  @@map("user_acquisition")
+}
+
+model userAuthAccounts {
+  id                     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String @map("user_id")   @db.Uuid
+  provider               String   @db.VarChar(64)
+  providerAccountId    String? @map("provider_account_id")  @db.VarChar(255)
+  firstAuthenticatedAt DateTime @map("first_authenticated_at") @default(now()) @db.Timestamptz(6)
+  lastAuthenticatedAt  DateTime @map("last_authenticated_at") @default(now()) @db.Timestamptz(6)
+  authCount             Int @map("auth_count")      @default(1)
+  metadata               Json     @default("{}")
+  createdAt             DateTime @map("created_at") @default(now()) @db.Timestamptz(6)
+  updatedAt             DateTime @map("updated_at") @default(now()) @db.Timestamptz(6)
+  nullAccountKey       String? @map("null_account_key")  @unique(map: "user_auth_accounts_null_account_key_uidx") @default(dbgenerated("\nCASE\n    WHEN (provider_account_id IS NULL) THEN (((user_id)::text || ':'::text) || (provider)::text)\n    ELSE NULL::text\nEND"))
+  users                  users    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([provider, providerAccountId], map: "user_auth_accounts_provider_account_uidx", where: raw("(provider_account_id IS NOT NULL)"))
+  @@map("user_auth_accounts")
+}
+
+model userCapabilityPreferences {
+  userId            String @map("user_id")             @db.Uuid
+  capabilityKey     String @map("capability_key")             @db.VarChar(160)
+  isEnabled         Boolean @map("is_enabled")            @default(true)
+  createdAt         DateTime @map("created_at")           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime @map("updated_at")           @default(now()) @db.Timestamptz(6)
+  capabilityCatalog capabilityCatalog @relation(fields: [capabilityKey], references: [key], onDelete: NoAction, onUpdate: NoAction)
+  users              users              @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([userId, capabilityKey], map: "user_capability_preferences_user_capability_uidx")
+  @@map("user_capability_preferences")
+}
+
+model userMediaPreferences {
+  userId                 String @map("user_id")   @id @db.Uuid
+  backgroundBlurEnabled Boolean @map("background_blur_enabled")  @default(false)
+  createdAt              DateTime @map("created_at") @default(now()) @db.Timestamptz(6)
+  updatedAt              DateTime @map("updated_at") @default(now()) @db.Timestamptz(6)
+  users                   users    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("user_media_preferences")
+}
+
+model users {
+  aiCreditReservations aiCreditReservations[]
+  id                                                                              String                                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                                                                           String                                 @unique @db.VarChar(255)
+  displayName                                                                    String @map("display_name")                                 @db.VarChar(120)
+  createdAt                                                                      DateTime @map("created_at")                               @default(now()) @db.Timestamptz(6)
+  avatarUrl                                                                      String? @map("avatar_url")                                @db.VarChar(1024)
+  source                                                                          String                                 @default("auth")
+  plan                                                                            String                                 @default("free")
+  hasCompletedFirstMeeting                                                     Boolean @map("has_completed_first_meeting")                                @default(false)
+  sessionVersion                                                                 Int @map("session_version")                                    @default(1)
+  deletedAt                                                                      DateTime? @map("deleted_at")                              @db.Timestamptz(6)
+  agentIntroCompletedAt                                                        DateTime? @map("agent_intro_completed_at")                              @db.Timestamptz(6)
+  lastSeenAt                                                                    DateTime? @map("last_seen_at")                              @db.Timestamptz(6)
+  activeWorkspaceId                                                             String? @map("active_workspace_id")                                @db.Uuid
+  privateBetaProEnabledAt                                                     DateTime? @map("private_beta_pro_enabled_at")                              @db.Timestamptz(6)
+  deletionRequestedAt                                                           DateTime? @map("deletion_requested_at")                              @db.Timestamptz(6)
+  acquisitionPayments                                                            acquisitionPayments[]
+  adminUserPlanChangesAdminUserPlanChangesActorUserIdTousers            adminUserPlanChanges[]              @relation("admin_user_plan_changes_actor_user_idTousers")
+  adminUserPlanChangesAdminUserPlanChangesTargetUserIdTousers           adminUserPlanChanges[]              @relation("admin_user_plan_changes_target_user_idTousers")
+  agentConnectors                                                                agentConnectors[]
+  agentMemories                                                                  agentMemories[]
+  agentProfiles                                                                  agentProfiles[]
+  agentToolInvocationsAgentToolInvocationsConfirmationActorUserIdTousers agentToolInvocations[]               @relation("agent_tool_invocations_confirmation_actor_user_idTousers")
+  agentToolInvocationsAgentToolInvocationsUserIdTousers                    agentToolInvocations[]               @relation("agent_tool_invocations_user_idTousers")
+  aiCreditUsageEvents                                                          aiCreditUsageEvents[]
+  ashbyMemberConnections                                                        ashbyMemberConnections[]
+  ashbyReviews                                                                   ashbyReviews[]
+  assignedTaskPlacementsAssignedTaskPlacementsAssigneeUserIdTousers       assignedTaskPlacements[]             @relation("assigned_task_placements_assignee_user_idTousers")
+  assignedTaskPlacementsAssignedTaskPlacementsUpdatedByUserIdTousers     assignedTaskPlacements[]             @relation("assigned_task_placements_updated_by_user_idTousers")
+  billingCustomers                                                               billingCustomers?
+  billingSubscriptions                                                           billingSubscriptions?
+  calendarEventPreps                                                            calendarEventPreps[]
+  calendarReadyLinks                                                            calendarReadyLinks[]
+  calendarSyncSubscriptions                                                     calendarSyncSubscriptions[]
+  creditGrants                                                                   creditGrants[]
+  dataDeletionRequests                                                          dataDeletionRequests[]
+  googleAddonConferences                                                        googleAddonConferences[]
+  guestAuthSessionsGuestAuthSessionsLinkedToUserIdTousers                guestAuthSessions[]                  @relation("guest_auth_sessions_linked_to_user_idTousers")
+  guestAuthSessionsGuestAuthSessionsUserIdTousers                          guestAuthSessions[]                  @relation("guest_auth_sessions_user_idTousers")
+  guestBrowserIdentities                                                        guestBrowserIdentities[]
+  guestBrowserUsers                                                             guestBrowserUsers?
+  guestMemoryAccountLinksGuestMemoryAccountLinksAccountUserIdTousers    guestMemoryAccountLinks[]           @relation("guest_memory_account_links_account_user_idTousers")
+  guestMemoryAccountLinksGuestMemoryAccountLinksGuestUserIdTousers      guestMemoryAccountLinks?            @relation("guest_memory_account_links_guest_user_idTousers")
+  linearTaskReviewRuns                                                         linearTaskReviewRuns[]
+  meetingAttendanceIntervals                                                    meetingAttendanceIntervals[]
+  meetingAttendeeWorkspaces                                                     meetingAttendeeWorkspaces[]
+  meetingJoinRequestsMeetingJoinRequestsDecidedByUserIdTousers           meetingJoinRequests[]                @relation("meeting_join_requests_decided_by_user_idTousers")
+  meetingJoinRequestsMeetingJoinRequestsUserIdTousers                      meetingJoinRequests[]                @relation("meeting_join_requests_user_idTousers")
+  meetingLinks                                                                   meetingLinks[]
+  meetingLiveTaskCandidateEvidence                                            meetingLiveTaskCandidateEvidence[]
+  meetingLiveTaskCandidates                                                    meetingLiveTaskCandidates[]
+  meetingParticipants                                                            meetingParticipants[]
+  meetingResearchRuns                                                           meetingResearchRuns[]
+  meetingTasksMeetingTasksOwnerUserIdTousers                                meetingTasks[]                        @relation("meeting_tasks_owner_user_idTousers")
+  meetingTasksMeetingTasksStatusActorUserIdTousers                         meetingTasks[]                        @relation("meeting_tasks_status_actor_user_idTousers")
+  meetingTrialSlots                                                             meetingTrialSlots[]
+  meetingTurns                                                                   meetingTurns[]
+  meetingsMeetingsConfidentialityUpdatedByUserIdTousers                     meetings[]                             @relation("meetings_confidentiality_updated_by_user_idTousers")
+  meetingsMeetingsCreatedByUserIdTousers                                     meetings[]                             @relation("meetings_created_by_user_idTousers")
+  memoryGenerationLedger                                                        memoryGenerationLedger[]
+  memoryPeople                                                                   memoryPeople[]
+  memoryPersonIdentities                                                        memoryPersonIdentities[]
+  memoryPersonNames                                                             memoryPersonNames[]
+  memoryPreferences                                                              memoryPreferences[]
+  memorySources                                                                  memorySources[]
+  memorySyncHeads                                                               memorySyncHeads[]
+  personalTaskClearances                                                        personalTaskClearances[]
+  personalTaskItemClearances                                                   personalTaskItemClearances[]
+  privateBetaWaitlistEntries                                                   privateBetaWaitlistEntries?
+  slackDeliveryConfigs                                                          slackDeliveryConfigs?
+  slackMeetingDeliveries                                                        slackMeetingDeliveries[]
+  slackMeetingReviews                                                           slackMeetingReviews[]
+  transcriptSegmentsTranscriptSegmentsAgentOwnerUserIdTousers              transcriptSegments[]                  @relation("transcript_segments_agent_owner_user_idTousers")
+  transcriptSegmentsTranscriptSegmentsSpeakerUserIdTousers                  transcriptSegments[]                  @relation("transcript_segments_speaker_user_idTousers")
+  usageEvents                                                                    usageEvents[]
+  userAcquisition                                                                userAcquisition?
+  userAuthAccounts                                                              userAuthAccounts[]
+  userCapabilityPreferences                                                     userCapabilityPreferences[]
+  userMediaPreferences                                                          userMediaPreferences?
+  workspacesUsersActiveWorkspaceIdToworkspaces                                workspaces?                            @relation("users_active_workspace_idToworkspaces", fields: [activeWorkspaceId], references: [id], onUpdate: NoAction)
+  voiceWebResearchRuns                                                         voiceWebResearchRuns[]
+  workspaceAshbyIntegrations                                                    workspaceAshbyIntegrations[]
+  workspaceAuditEvents                                                          workspaceAuditEvents[]
+  workspaceInvitationsWorkspaceInvitationsAcceptedByUserIdTousers          workspaceInvitations[]                @relation("workspace_invitations_accepted_by_user_idTousers")
+  workspaceInvitationsWorkspaceInvitationsInvitedByUserIdTousers           workspaceInvitations[]                @relation("workspace_invitations_invited_by_user_idTousers")
+  workspaceMemberships                                                           workspaceMemberships[]
+  workspaceTaskSectionsWorkspaceTaskSectionsCreatedByUserIdTousers       workspaceTaskSections[]              @relation("workspace_task_sections_created_by_user_idTousers")
+  workspaceTaskSectionsWorkspaceTaskSectionsUpdatedByUserIdTousers       workspaceTaskSections[]              @relation("workspace_task_sections_updated_by_user_idTousers")
+  workspaceTasksWorkspaceTasksAssigneeUserIdTousers                         workspaceTasks[]                      @relation("workspace_tasks_assignee_user_idTousers")
+  workspaceTasksWorkspaceTasksCreatedByUserIdTousers                       workspaceTasks[]                      @relation("workspace_tasks_created_by_user_idTousers")
+  workspaceTasksWorkspaceTasksUpdatedByUserIdTousers                       workspaceTasks[]                      @relation("workspace_tasks_updated_by_user_idTousers")
+  workspacesWorkspacesCreatedByUserIdTousers                                 workspaces?                            @relation("workspaces_created_by_user_idTousers")
+}
+
+model voiceWebResearchRuns {
+  queryKeyFingerprint String @map("query_key_fingerprint") @default(dbgenerated())
+  queryFingerprint String @map("query_fingerprint") @default(dbgenerated())
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  meetingId       String @map("meeting_id")         @db.Uuid
+  userId          String @map("user_id")         @db.Uuid
+  agentProfileId String @map("agent_profile_id")         @db.Uuid
+  utteranceId     String @map("utterance_id")         @db.VarChar(160)
+  query            String
+  queryKey        String @map("query_key")
+  status           String         @default("queued") @db.VarChar(32)
+  researchMode    String @map("research_mode")         @default("fast_grounded") @db.VarChar(48)
+  sessionId       String? @map("session_id")        @db.VarChar(1000)
+  searchId        String? @map("search_id")        @db.VarChar(180)
+  findallId       String? @map("findall_id")        @db.VarChar(180)
+  taskgroupId     String? @map("taskgroup_id")        @db.VarChar(180)
+  runRefs         Json @map("run_refs")           @default(dbgenerated())
+  progress         Json           @default(dbgenerated())
+  result           Json           @default(dbgenerated())
+  error            Json?
+  cancelledAt     DateTime? @map("cancelled_at")      @db.Timestamptz(6)
+  expiresAt       DateTime? @map("expires_at")      @db.Timestamptz(6)
+  createdAt       DateTime @map("created_at")       @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime @map("updated_at")       @default(now()) @db.Timestamptz(6)
+  agentProfiles   agentProfiles @relation(fields: [agentProfileId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  meetings         meetings       @relation(fields: [meetingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users            users          @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([meetingId, userId, queryKeyFingerprint], map: "voice_web_research_runs_active_query_uidx", where: raw("((status)::text <> ALL (ARRAY[('failed'::character varying)::text, ('cancelled'::character varying)::text, ('expired'::character varying)::text, ('completed'::character varying)::text]))"))
+  @@map("voice_web_research_runs")
+}
+
+model workspaceAshbyIntegrations {
+  workspaceId          String @map("workspace_id")     @id @db.Uuid
+  secretRef            String @map("secret_ref")
+  configuredByUserId String? @map("configured_by_user_id")    @db.Uuid
+  createdAt            DateTime @map("created_at")   @default(now()) @db.Timestamptz(6)
+  updatedAt            DateTime @map("updated_at")   @default(now()) @db.Timestamptz(6)
+  users                 users?     @relation(fields: [configuredByUserId], references: [id], onUpdate: NoAction)
+  workspaces            workspaces @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("workspace_ashby_integrations")
+}
+
+model workspaceAuditEvents {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId  String @map("workspace_id")     @db.Uuid
+  actorUserId String? @map("actor_user_id")    @db.Uuid
+  eventType    String @map("event_type")     @db.VarChar(64)
+  subjectType  String? @map("subject_type")    @db.VarChar(32)
+  subjectId    String? @map("subject_id")    @db.Uuid
+  metadata      Json       @default("{}")
+  createdAt    DateTime @map("created_at")   @default(now()) @db.Timestamptz(6)
+  users         users?     @relation(fields: [actorUserId], references: [id], onUpdate: NoAction)
+  workspaces    workspaces @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("workspace_audit_events")
+}
+
+model workspaceBillingCustomers {
+  workspaceId       String @map("workspace_id")     @id @db.Uuid
+  stripeCustomerId String @map("stripe_customer_id")     @unique @db.VarChar(255)
+  createdAt         DateTime @map("created_at")   @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime @map("updated_at")   @default(now()) @db.Timestamptz(6)
+  workspaces         workspaces @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("workspace_billing_customers")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model workspaceInvitations {
+  id                                                     String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId                                           String @map("workspace_id")     @db.Uuid
+  email                                                  String     @db.VarChar(255)
+  role                                                   String     @default("member")
+  tokenHash                                             String @map("token_hash")     @unique(map: "workspace_invitations_token_hash_uidx")
+  invitedByUserId                                     String? @map("invited_by_user_id")    @db.Uuid
+  expiresAt                                             DateTime @map("expires_at")   @db.Timestamptz(6)
+  acceptedAt                                            DateTime? @map("accepted_at")  @db.Timestamptz(6)
+  acceptedByUserId                                    String? @map("accepted_by_user_id")    @db.Uuid
+  revokedAt                                             DateTime? @map("revoked_at")  @db.Timestamptz(6)
+  lastSentAt                                           DateTime @map("last_sent_at")   @default(now()) @db.Timestamptz(6)
+  sendCount                                             Int @map("send_count")        @default(1)
+  createdAt                                             DateTime @map("created_at")   @default(now()) @db.Timestamptz(6)
+  updatedAt                                             DateTime @map("updated_at")   @default(now()) @db.Timestamptz(6)
+  activeEmailKey                                       String? @map("active_email_key")    @unique(map: "workspace_invitations_active_email_key_uidx") @default(dbgenerated("\nCASE\n    WHEN ((accepted_at IS NULL) AND (revoked_at IS NULL)) THEN (((workspace_id)::text || ':'::text) || lower((email)::text))\n    ELSE NULL::text\nEND"))
+  usersWorkspaceInvitationsAcceptedByUserIdTousers users?     @relation("workspace_invitations_accepted_by_user_idTousers", fields: [acceptedByUserId], references: [id], onUpdate: NoAction)
+  usersWorkspaceInvitationsInvitedByUserIdTousers  users?     @relation("workspace_invitations_invited_by_user_idTousers", fields: [invitedByUserId], references: [id], onUpdate: NoAction)
+  workspaces                                             workspaces @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("workspace_invitations")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model workspaceMemberships {
+  id               String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId     String @map("workspace_id")     @db.Uuid
+  userId          String @map("user_id")     @db.Uuid
+  role             String     @default("member")
+  createdAt       DateTime @map("created_at")   @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime @map("updated_at")   @default(now()) @db.Timestamptz(6)
+  status           String     @default("active")
+  suspendedAt     DateTime? @map("suspended_at")  @db.Timestamptz(6)
+  activeOwnerKey String? @map("active_owner_key")    @unique(map: "workspace_memberships_active_owner_key_uidx") @default(dbgenerated("\nCASE\n    WHEN ((role = 'owner'::text) AND (status = 'active'::text)) THEN (workspace_id)::text\n    ELSE NULL::text\nEND"))
+  users            users      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  workspaces       workspaces @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([workspaceId, userId], map: "workspace_memberships_workspace_user_uidx")
+  @@map("workspace_memberships")
+}
+
+model workspaceTaskSections {
+  id                                                      String                     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId                                            String @map("workspace_id")                     @unique(map: "workspace_task_sections_default_uidx", where: raw("((is_default = true) AND (deleted_at IS NULL))")) @db.Uuid
+  title                                                   String
+  position                                                Int                        @default(0)
+  isDefault                                              Boolean @map("is_default")                    @default(false)
+  createdByUserId                                      String? @map("created_by_user_id")                    @db.Uuid
+  updatedByUserId                                      String? @map("updated_by_user_id")                    @db.Uuid
+  createdAt                                              DateTime @map("created_at")                   @default(now()) @db.Timestamptz(6)
+  updatedAt                                              DateTime @map("updated_at")                   @default(now()) @db.Timestamptz(6)
+  deletedAt                                              DateTime? @map("deleted_at")                  @db.Timestamptz(6)
+  assignedTaskPlacements                                assignedTaskPlacements[]
+  usersWorkspaceTaskSectionsCreatedByUserIdTousers users?                     @relation("workspace_task_sections_created_by_user_idTousers", fields: [createdByUserId], references: [id], onUpdate: NoAction)
+  usersWorkspaceTaskSectionsUpdatedByUserIdTousers users?                     @relation("workspace_task_sections_updated_by_user_idTousers", fields: [updatedByUserId], references: [id], onUpdate: NoAction)
+  workspaces                                              workspaces                 @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  titleFingerprint String @map("title_fingerprint") @default(dbgenerated())
+
+  @@unique([workspaceId, titleFingerprint], map: "workspace_task_sections_title_uidx", where: raw("(deleted_at IS NULL)"))
+  @@map("workspace_task_sections")
+}
+
+model workspaceTasks {
+  id                                              String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  workspaceId                                    String @map("workspace_id")     @db.Uuid
+  createdByUserId                              String? @map("created_by_user_id")    @db.Uuid
+  updatedByUserId                              String? @map("updated_by_user_id")    @db.Uuid
+  assigneeUserId                                String? @map("assignee_user_id")    @db.Uuid
+  title                                           String
+  description                                     String?
+  dueDateValue                                  String? @map("due_date_value")
+  dueDateConfidence                             String? @map("due_date_confidence")
+  status                                          String     @default("open")
+  revision                                        Int        @default(1)
+  completedAt                                    DateTime? @map("completed_at")  @db.Timestamptz(6)
+  createdAt                                      DateTime @map("created_at")   @default(now()) @db.Timestamptz(6)
+  updatedAt                                      DateTime @map("updated_at")   @default(now()) @db.Timestamptz(6)
+  usersWorkspaceTasksAssigneeUserIdTousers   users?     @relation("workspace_tasks_assignee_user_idTousers", fields: [assigneeUserId], references: [id], onUpdate: NoAction)
+  usersWorkspaceTasksCreatedByUserIdTousers users?     @relation("workspace_tasks_created_by_user_idTousers", fields: [createdByUserId], references: [id], onUpdate: NoAction)
+  usersWorkspaceTasksUpdatedByUserIdTousers users?     @relation("workspace_tasks_updated_by_user_idTousers", fields: [updatedByUserId], references: [id], onUpdate: NoAction)
+  workspaces                                      workspaces @relation(fields: [workspaceId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  @@map("workspace_tasks")
+}
+
+model workspaces {
+  isLiveSummaryEnabled Boolean @default(true) @map("live_summary_enabled")
+  isAmbientContextEnabled Boolean @default(true) @map("ambient_context_enabled")
+  aiCreditReservations aiCreditReservations[]
+  id                                          String                          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                                        String                          @db.VarChar(255)
+  createdByUserId                          String? @map("created_by_user_id")                         @unique(map: "workspaces_one_system_default_per_creator_uidx", where: raw("((created_via)::text = 'system_default'::text)")) @db.Uuid
+  createdAt                                  DateTime @map("created_at")                        @default(now()) @db.Timestamptz(6)
+  updatedAt                                  DateTime @map("updated_at")                        @default(now()) @db.Timestamptz(6)
+  logoUrl                                    String? @map("logo_url")
+  plan                                        String                          @default("free")
+  createdVia                                 String @map("created_via")                          @default("user") @db.VarChar(24)
+  acquisitionPayments                        acquisitionPayments[]
+  aiCreditUsageEvents                      aiCreditUsageEvents[]
+  ashbyCandidateEmailLookups               ashbyCandidateEmailLookups[]
+  ashbyMemberConnections                    ashbyMemberConnections[]
+  ashbyReviewActions                        ashbyReviewActions[]
+  ashbyReviews                               ashbyReviews[]
+  assignedTaskPlacements                    assignedTaskPlacements[]
+  billingSubscriptions                       billingSubscriptions?
+  creditGrants                               creditGrants[]
+  meetingAttendeeWorkspaces                 meetingAttendeeWorkspaces[]
+  meetingLinks                               meetingLinks[]
+  meetingTrialSlots                         meetingTrialSlots[]
+  meetings                                    meetings[]
+  memoryPeople                               memoryPeople[]
+  memoryPersonIdentities                    memoryPersonIdentities[]
+  memoryPreferences                          memoryPreferences[]
+  memorySources                              memorySources[]
+  memorySyncHeads                           memorySyncHeads[]
+  personalTaskClearances                    personalTaskClearances[]
+  personalTaskItemClearances               personalTaskItemClearances[]
+  userAcquisition                            userAcquisition[]
+  usersUsersActiveWorkspaceIdToworkspaces users[]                         @relation("users_active_workspace_idToworkspaces")
+  workspaceAshbyIntegrations                workspaceAshbyIntegrations?
+  workspaceAuditEvents                      workspaceAuditEvents[]
+  workspaceBillingCustomers                 workspaceBillingCustomers?
+  workspaceInvitations                       workspaceInvitations[]
+  workspaceMemberships                       workspaceMemberships[]
+  workspaceTaskSections                     workspaceTaskSections?
+  workspaceTasks                             workspaceTasks[]
+  usersWorkspacesCreatedByUserIdTousers  users?                          @relation("workspaces_created_by_user_idTousers", fields: [createdByUserId], references: [id], onUpdate: NoAction)
+}
